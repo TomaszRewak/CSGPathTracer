@@ -37,8 +37,19 @@ struct ShapeSpace
 
 struct Intersection
 {
-	float distance;
 	bool valid;
+	Point position;
+	Vector normalVector;
+
+	__device__ Intersection() :
+		valid(false)
+	{ }
+
+	__device__ Intersection(Point position, Vector normalVector) :
+		valid(true),
+		position(position),
+		normalVector(normalVector)
+	{ }
 };
 
 void renderRect(uchar4* image, const size_t imageWidth, const size_t imageHeight, Shape* shapes, size_t shapesNumber);

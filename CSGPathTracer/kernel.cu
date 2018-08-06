@@ -17,40 +17,94 @@ size_t sphereIntersections(Ray ray, Intersection* intersections)
 
 	float delta = b * b - 4 * a * c;
 
-	if (delta >= 0)
+	size_t intersectionsNumber = 0;
+
+	if (delta >= 0.0f)
 	{
 		float deltaSqrt = sqrtf(delta);
+		float
+			d1 = -(b - deltaSqrt) / (2 * a),
+			d2 = -(b + deltaSqrt) / (2 * a);
 
-		intersections[0].distance = -(b - deltaSqrt) / (2 * a);
-		intersections[1].distance = -(b + deltaSqrt) / (2 * a);
+		if (d1 > 0.0f)
+		{
+			Point intersectionPoint = ray.begin + ray.direction * d1;
 
-		return 2;
+			intersections[intersectionsNumber] = Intersection(
+				intersectionPoint,
+				intersectionPoint - Point(0, 0, 0)
+			);
+
+			intersectionsNumber++;
+		}
+		if (d2 > 0.0f)
+		{
+			Point intersectionPoint = ray.begin + ray.direction * d2;
+
+			intersections[intersectionsNumber] = Intersection(
+				intersectionPoint,
+				intersectionPoint - Point(0, 0, 0)
+			);
+
+			intersectionsNumber++;
+		}
 	}
-	else
-		return 0;
+
+	return intersectionsNumber;
 }
 
 bool sphereWithin(Point& point)
 {
-	return point.x * point.x + point.y * point.y + point.z * point.z <= 1;
+	return point.x * point.x + point.y * point.y + point.z * point.z <= 1.0f;
 }
 
 __device__
-size_t trace(Ray& ray, ShapeSpace* shapes, size_t shapesNumber)
+float trace(Ray& ray, ShapeSpace* shapes, size_t shapesNumber)
 {
 	Intersection intersections[Intersections];
 	size_t intersectionsNumber = 0;
 
 	for (size_t i = 0; i < shapesNumber; i++)
 	{
-		TwoWayAffineTransformation transformation = shapes[i].transformation;
+		TwoWayAffineTransformation& transformation = shapes[i].transformation;
 
 		Ray transformedRay = transformation.inverse(ray);
 
-		intersectionsNumber += sphereIntersections(transformedRay, intersections + intersectionsNumber);
+		size_t newIntersectionsNumber = intersectionsNumber + sphereIntersections(transformedRay, intersections + intersectionsNumber);
+
+		for (size_t intersectionNumber = intersectionsNumber; intersectionNumber < newIntersectionsNumber; intersectionNumber++)
+		{
+			intersections[intersectionNumber].position = transformation.transform(intersections[intersectionNumber].position);
+			intersections[intersectionNumber].normalVector = transformation.transform(intersections[intersectionNumber].normalVector);
+		}
+
+		intersectionsNumber = newIntersectionsNumber;
 	}
 
-	return intersectionsNumber;
+	if (intersectionsNumber)
+	{
+		size_t closestIntersection = -1;
+		float closestIntersectionDistance = 99999999999.0f;
+
+		for (size_t i = 0; i < intersectionsNumber; i++)
+		{
+			float distance = (intersections[i].position - ray.begin).norm2();
+
+			if (distance < closestIntersectionDistance)
+			{
+				closestIntersectionDistance = distance;
+				closestIntersection = i;
+			}
+		}
+
+		float angle = Vector(0.5, 0.5, -1).unitVector().dotProduct(intersections[closestIntersection].normalVector.unitVector());
+
+		return fmaxf(angle, 0.0f);
+	}
+	else
+	{
+		return 0.0f;
+	}
 }
 
 __device__
@@ -86,22 +140,12 @@ void kernel(uchar4* image, size_t imageWidth, size_t imageHeight, Shape* shapes,
 
 		Ray ray(Point(x, y, 0), Vector(0, 0, 1));
 
-		size_t intersectionsNumber = trace(ray, shapeSpaces, shapesNumber);
+		float light = trace(ray, shapeSpaces, shapesNumber);
 
-		if (intersectionsNumber)
-		{
-			image[index].x = 255;
-			image[index].y = 255;
-			image[index].z = 255;
-			image[index].w = 255;
-		}
-		else
-		{
-			image[index].x = 100;
-			image[index].y = 100;
-			image[index].z = 255;
-			image[index].w = 255;
-		}
+		image[index].x = light * 255;
+		image[index].y = light * 255;
+		image[index].z = light * 255;
+		image[index].w = light * 255;
 	}
 }
 

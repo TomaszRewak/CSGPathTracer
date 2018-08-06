@@ -70,9 +70,9 @@ void createDataBuffer()
 	cudaMalloc(&dataBuffer, size);
 
 	Shape data[] = {
-		Shape(ShapeType::Sphere, AffineTransformation().scale(25, 25, 25).translate(0, 0, 100)),
-		Shape(ShapeType::Sphere, AffineTransformation().scale(15, 15, 15).translate(70, 30, 150)),
-		Shape(ShapeType::Sphere, AffineTransformation().scale(20, 10, 10).translate(150, 100, 200)),
+		Shape(ShapeType::Sphere, AffineTransformation().scale(55, 55, 55).translate(0, 0, 100)),
+		Shape(ShapeType::Sphere, AffineTransformation().scale(65, 65, 65).translate(70, 30, 100)),
+		Shape(ShapeType::Sphere, AffineTransformation().scale(60, 30, 10).translate(150, 100, 200)),
 	};
 
 	cudaMemcpy(dataBuffer, data, size, cudaMemcpyHostToDevice);
