@@ -20,8 +20,10 @@ int height = 500;
 
 GLuint texture;
 GLuint pixelBuffer;
-Shape* dataBuffer;
 cudaGraphicsResource *cudaBuffer;
+
+size_t shapesNumber = 0;
+Shape* shapes;
 
 void renderImage()
 {
@@ -31,7 +33,7 @@ void renderImage()
 	cudaGraphicsMapResources(1, &cudaBuffer);
 	cudaGraphicsResourceGetMappedPointer((void **)&imageArray, &imageArraySize, cudaBuffer);
 
-	renderRect(imageArray, width, height, dataBuffer, 3);
+	renderRect(imageArray, width, height, shapes, shapesNumber);
 
 	cudaGraphicsUnmapResources(1, &cudaBuffer);
 }
@@ -66,16 +68,34 @@ void createPixelBuffer()
 
 void createDataBuffer()
 {
-	size_t size = 3 * sizeof(Shape);
-	cudaMalloc(&dataBuffer, size);
+	shapesNumber = 19;
+
+	size_t size = shapesNumber * sizeof(Shape);
+	cudaMalloc(&shapes, size);
 
 	Shape data[] = {
-		Shape(ShapeType::Sphere, AffineTransformation().scale(55, 55, 55).translate(0, 0, 100)),
-		Shape(ShapeType::Sphere, AffineTransformation().scale(65, 65, 65).translate(70, 30, 100)),
-		Shape(ShapeType::Sphere, AffineTransformation().scale(60, 30, 10).translate(150, 100, 200)),
+		Shape(ShapeType::Intersection, AffineTransformation().scale(100, 100, 100).rotateX(0.2).rotateY(0.4).translate(0, 0, 500), 1, 2), // 0
+		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0)), // 1
+		Shape(ShapeType::Intersection, AffineTransformation(), 3, 4), // 2
+		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateZ(0.f, 1.f)), // 3
+		Shape(ShapeType::Intersection, AffineTransformation(), 5, 6), // 4
+		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateZ(0.f, -1.f)), // 5
+		Shape(ShapeType::Intersection, AffineTransformation(), 7, 8), // 6
+		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateX(0.f, 1.f)), // 7
+		Shape(ShapeType::Intersection, AffineTransformation(), 9, 10), // 8
+		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateX(0.f, -1.f)), // 9
+		Shape(ShapeType::Intersection, AffineTransformation(), 11, 12), // 10
+		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateX(-1.f, 0.f)), // 11
+		Shape(ShapeType::Difference, AffineTransformation(), 13, 14), // 12
+		Shape(ShapeType::Sphere, AffineTransformation()), // 13
+		Shape(ShapeType::Union, AffineTransformation(), 15, 16), // 14
+		Shape(ShapeType::Cylinder, AffineTransformation()), // 15
+		Shape(ShapeType::Union, AffineTransformation(), 17, 18), // 16
+		Shape(ShapeType::Cylinder, AffineTransformation().rotateZ(-1.f, 0.f)), // 17
+		Shape(ShapeType::Cylinder, AffineTransformation().rotateX(-1.f, 0.f)), // 18
 	};
 
-	cudaMemcpy(dataBuffer, data, size, cudaMemcpyHostToDevice);
+	cudaMemcpy(shapes, data, size, cudaMemcpyHostToDevice);
 }
 
 void bindCuda()
@@ -153,6 +173,8 @@ int main(int argc, char **argv)
 	createTexture();
 	createPixelBuffer();
 	createDataBuffer();
+
+	cudaDeviceSetLimit(cudaLimitStackSize, 5000);
 
 	glutMainLoop();
 	timerEvent(0);

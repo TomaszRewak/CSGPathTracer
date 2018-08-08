@@ -2,104 +2,265 @@
 
 #include "kernel.h"
 #include <math.h>
+#include <new.h>
 
 #define N 128
-#define Intersections 100
 
-__device__
-size_t sphereIntersections(Ray ray, Intersection* intersections)
+struct NoneShapeComponent : public Component
 {
-	float a, b, c;
+	__device__ NoneShapeComponent(const AffineTransformation& transformation) :
+		Component(transformation)
+	{ }
 
-	a = ray.direction.dx * ray.direction.dx + ray.direction.dy * ray.direction.dy + ray.direction.dz * ray.direction.dz;
-	b = 2 * (ray.begin.x * ray.direction.dx + ray.begin.y * ray.direction.dy + ray.begin.z * ray.direction.dz);
-	c = ray.begin.x * ray.begin.x + ray.begin.y * ray.begin.y + ray.begin.z * ray.begin.z - 1;
-
-	float delta = b * b - 4 * a * c;
-
-	size_t intersectionsNumber = 0;
-
-	if (delta >= 0.0f)
+	__device__ virtual Intersection intersectLocally(Ray ray)
 	{
-		float deltaSqrt = sqrtf(delta);
-		float
-			d1 = -(b - deltaSqrt) / (2 * a),
-			d2 = -(b + deltaSqrt) / (2 * a);
-
-		if (d1 > 0.0f)
-		{
-			Point intersectionPoint = ray.begin + ray.direction * d1;
-
-			intersections[intersectionsNumber] = Intersection(
-				intersectionPoint,
-				intersectionPoint - Point(0, 0, 0)
-			);
-
-			intersectionsNumber++;
-		}
-		if (d2 > 0.0f)
-		{
-			Point intersectionPoint = ray.begin + ray.direction * d2;
-
-			intersections[intersectionsNumber] = Intersection(
-				intersectionPoint,
-				intersectionPoint - Point(0, 0, 0)
-			);
-
-			intersectionsNumber++;
-		}
+		return Intersection();
 	}
 
-	return intersectionsNumber;
-}
-
-bool sphereWithin(Point& point)
-{
-	return point.x * point.x + point.y * point.y + point.z * point.z <= 1.0f;
-}
-
-__device__
-float trace(Ray& ray, ShapeSpace* shapes, size_t shapesNumber)
-{
-	Intersection intersections[Intersections];
-	size_t intersectionsNumber = 0;
-
-	for (size_t i = 0; i < shapesNumber; i++)
+	__device__ virtual bool validateLocally(Point point, Component* currentComponent)
 	{
-		TwoWayAffineTransformation& transformation = shapes[i].transformation;
-
-		Ray transformedRay = transformation.inverse(ray);
-
-		size_t newIntersectionsNumber = intersectionsNumber + sphereIntersections(transformedRay, intersections + intersectionsNumber);
-
-		for (size_t intersectionNumber = intersectionsNumber; intersectionNumber < newIntersectionsNumber; intersectionNumber++)
-		{
-			intersections[intersectionNumber].position = transformation.transform(intersections[intersectionNumber].position);
-			intersections[intersectionNumber].normalVector = transformation.transform(intersections[intersectionNumber].normalVector);
-		}
-
-		intersectionsNumber = newIntersectionsNumber;
+		return false;
 	}
+};
 
-	if (intersectionsNumber)
+struct SphereShapeComponent : public Component
+{
+	__device__ SphereShapeComponent(const AffineTransformation& transformation) :
+		Component(transformation)
+	{ }
+
+	__device__ virtual Intersection intersectLocally(Ray ray)
 	{
-		size_t closestIntersection = -1;
-		float closestIntersectionDistance = 99999999999.0f;
+		float a, b, c;
 
-		for (size_t i = 0; i < intersectionsNumber; i++)
+		a = ray.direction.dx * ray.direction.dx + ray.direction.dy * ray.direction.dy + ray.direction.dz * ray.direction.dz;
+		b = 2.f * (ray.begin.x * ray.direction.dx + ray.begin.y * ray.direction.dy + ray.begin.z * ray.direction.dz);
+		c = ray.begin.x * ray.begin.x + ray.begin.y * ray.begin.y + ray.begin.z * ray.begin.z - 1.f;
+
+		float delta = b * b - 4 * a * c;
+
+		if (delta >= 0.0f)
 		{
-			float distance = (intersections[i].position - ray.begin).norm2();
+			float deltaSqrt = sqrtf(delta);
 
-			if (distance < closestIntersectionDistance)
+			float d1 = (-b - deltaSqrt) / (2 * a);
+			float d2 = (-b + deltaSqrt) / (2 * a);
+
+			if (d1 > d2)
 			{
-				closestIntersectionDistance = distance;
-				closestIntersection = i;
+				float d3 = d1;
+				d1 = d2;
+				d2 = d3;
+			}
+
+			if (d1 > 0.0f)
+			{
+				Point intersectionPoint = ray.begin + ray.direction * d1;
+
+				if (validateUp(intersectionPoint, this))
+					return Intersection(intersectionPoint, intersectionPoint - Point(0, 0, 0));
+			}
+
+			if (d2 > 0.0f)
+			{
+				Point intersectionPoint = ray.begin + ray.direction * d2;
+
+				if (validateUp(intersectionPoint, this))
+					return Intersection(intersectionPoint, intersectionPoint - Point(0, 0, 0));
 			}
 		}
 
-		float angle = Vector(0.5, 0.5, -1).unitVector().dotProduct(intersections[closestIntersection].normalVector.unitVector());
+		return Intersection();
+	}
 
-		return fmaxf(angle, 0.0f);
+	__device__ virtual bool validateLocally(Point point, Component* component)
+	{
+		return point.x * point.x + point.y * point.y + point.z * point.z <= 1.0f;
+	}
+};
+
+struct CylinderShapeComponent : public Component
+{
+	__device__ CylinderShapeComponent(const AffineTransformation& transformation) :
+		Component(transformation)
+	{ }
+
+	__device__ virtual Intersection intersectLocally(Ray ray)
+	{
+		if (!ray.direction.dx && !ray.direction.dz)
+			return Intersection();
+
+		float a, b, c;
+
+		a = ray.direction.dx * ray.direction.dx + ray.direction.dz * ray.direction.dz;
+		b = 2.f * (ray.begin.x * ray.direction.dx + ray.begin.z * ray.direction.dz);
+		c = ray.begin.x * ray.begin.x + ray.begin.z * ray.begin.z - 1.f;
+
+		float delta = b * b - 4 * a * c;
+
+		if (delta >= 0.0f)
+		{
+			float deltaSqrt = sqrtf(delta);
+
+			float d1 = (-b - deltaSqrt) / (2 * a);
+			float d2 = (-b + deltaSqrt) / (2 * a);
+
+			if (d1 > d2)
+			{
+				float d3 = d1;
+				d1 = d2;
+				d2 = d3;
+			}
+
+			if (d1 > 0.0f)
+			{
+				Point intersectionPoint = ray.begin + ray.direction * d1;
+
+				if (validateUp(intersectionPoint, this))
+					return Intersection(intersectionPoint, intersectionPoint - Point(0, intersectionPoint.y, 0));
+			}
+
+			if (d2 > 0.0f)
+			{
+				Point intersectionPoint = ray.begin + ray.direction * d2;
+
+				if (validateUp(intersectionPoint, this))
+					return Intersection(intersectionPoint, intersectionPoint - Point(0, intersectionPoint.y, 0));
+			}
+		}
+
+		return Intersection();
+	}
+
+	__device__ virtual bool validateLocally(Point point, Component* component)
+	{
+		return point.x * point.x + point.z * point.z <= 1.0f;
+	}
+};
+
+struct PlaneShapeComponent : public Component
+{
+	__device__ PlaneShapeComponent(const AffineTransformation& transformation) :
+		Component(transformation)
+	{ }
+
+	__device__ virtual Intersection intersectLocally(Ray ray)
+	{
+		if (!ray.direction.dx)
+			return Intersection();
+
+		float d = -ray.begin.x / ray.direction.dx;
+
+		if (d > 0.0f)
+		{
+			Point intersectionPoint = ray.begin + ray.direction * d;
+
+			if (validateUp(intersectionPoint, this))
+				return Intersection(intersectionPoint, Vector(0, 1, 0));
+		}
+
+		return Intersection();
+	}
+
+	__device__ virtual bool validateLocally(Point point, Component* component)
+	{
+		return point.x <= 1.0f;
+	}
+};
+
+struct OperationComponent : public Component
+{
+	Component* leftOperand;
+	Component* rightOperand;
+
+	__device__ OperationComponent(const AffineTransformation& transformation) :
+		Component(transformation)
+	{ }
+
+	__device__ virtual Intersection intersectLocally(Ray ray)
+	{
+		Intersection leftIntersection = leftOperand->intersect(ray);
+		Intersection rightIntersection = rightOperand->intersect(ray);
+
+		if (!rightIntersection.hit)
+			return leftIntersection;
+		if (!leftIntersection.hit)
+			return rightIntersection;
+
+		float dLeft = (leftIntersection.position - ray.begin).norm2();
+		float dRight = (rightIntersection.position - ray.begin).norm2();
+
+		if (dLeft < dRight)
+			return leftIntersection;
+		else
+			return rightIntersection;
+	}
+};
+
+struct UnionOperationComponent : public OperationComponent
+{
+	__device__ UnionOperationComponent(const AffineTransformation& transformation) :
+		OperationComponent(transformation)
+	{ }
+
+	__device__ virtual bool validateLocally(Point point, Component* currentComponent)
+	{
+		if (leftOperand == currentComponent)
+			return !rightOperand->validate(point, this);
+
+		if (rightOperand == currentComponent)
+			return !leftOperand->validate(point, this);
+
+		return leftOperand->validate(point, this) || rightOperand->validate(point, this);
+	}
+};
+
+struct IntersectionOperationComponent : public OperationComponent
+{
+	__device__ IntersectionOperationComponent(const AffineTransformation& transformation) :
+		OperationComponent(transformation)
+	{ }
+
+	__device__ virtual bool validateLocally(Point point, Component* currentComponent)
+	{
+		if (leftOperand == currentComponent)
+			return rightOperand->validate(point, this);
+
+		if (rightOperand == currentComponent)
+			return leftOperand->validate(point, this);
+
+		return leftOperand->validate(point, this) && rightOperand->validate(point, this);
+	}
+};
+
+struct DifferenceOperationComponent : public OperationComponent
+{
+	__device__ DifferenceOperationComponent(const AffineTransformation& transformation) :
+		OperationComponent(transformation)
+	{ }
+
+	__device__ virtual bool validateLocally(Point point, Component* currentComponent)
+	{
+		if (leftOperand == currentComponent)
+			return !rightOperand->validate(point, this);
+
+		if (rightOperand == currentComponent)
+			return leftOperand->validate(point, this);
+
+		return leftOperand->validate(point, this) && !rightOperand->validate(point, this);
+	}
+};
+
+__device__
+float trace(Ray& ray, Component* currentComponent)
+{
+	Intersection intersection = currentComponent->intersect(ray);
+
+	if (intersection.hit)
+	{
+		float angle = Vector(0.5, 0.5, -1).unitVector().dotProduct(intersection.normalVector.unitVector());
+
+		return (angle + 1.0f) * 0.5f;
 	}
 	else
 	{
@@ -108,18 +269,71 @@ float trace(Ray& ray, ShapeSpace* shapes, size_t shapesNumber)
 }
 
 __device__
-void copyShapesToSharedMemory(ShapeSpace** shapeSpaces, Shape* shapes, size_t shapesNumber)
+void copyShapesToSharedMemory(Component**& spaceComponents, Shape* shapes, size_t shapesNumber)
 {
 	if (threadIdx.x == 0) {
-		size_t size = sizeof(ShapeSpace) * shapesNumber;
-		(*shapeSpaces) = (ShapeSpace*)malloc(size);
+		size_t size = sizeof(Component*) * shapesNumber;
+		spaceComponents = (Component**)malloc(size);
 
 		for (size_t i = 0; i < shapesNumber; i++)
 		{
-			(*shapeSpaces)[i] = shapes[i];
+			Shape& shape = shapes[i];
+
+			switch (shape.type)
+			{
+			case ShapeType::None:
+				spaceComponents[i] = new NoneShapeComponent(shape.transformation);
+				break;
+			case ShapeType::Union:
+				spaceComponents[i] = new UnionOperationComponent(shape.transformation);
+				break;
+			case ShapeType::Difference:
+				spaceComponents[i] = new DifferenceOperationComponent(shape.transformation);
+				break;
+			case ShapeType::Intersection:
+				spaceComponents[i] = new IntersectionOperationComponent(shape.transformation);
+				break;
+			case ShapeType::Sphere:
+				spaceComponents[i] = new SphereShapeComponent(shape.transformation);
+				break;
+			case ShapeType::Cylinder:
+				spaceComponents[i] = new CylinderShapeComponent(shape.transformation);
+				break;
+			case ShapeType::Plane:
+				spaceComponents[i] = new PlaneShapeComponent(shape.transformation);
+				break;
+			}
+		}
+
+		for (size_t i = 0; i < shapesNumber; i++)
+		{
+			Shape& shape = shapes[i];
+
+			if (shape.leftOperand)
+			{
+				static_cast<OperationComponent*>(spaceComponents[i])->leftOperand = spaceComponents[shape.leftOperand];
+				spaceComponents[shape.leftOperand]->parent = spaceComponents[i];
+			}
+			if (shape.rightOperand)
+			{
+				static_cast<OperationComponent*>(spaceComponents[i])->rightOperand = spaceComponents[shape.rightOperand];
+				spaceComponents[shape.rightOperand]->parent = spaceComponents[i];
+			}
 		}
 	}
 	__syncthreads();
+}
+
+__device__
+void freeShapes(Component** spaceComponents, size_t shapesNumber)
+{
+	__syncthreads();
+
+	if (threadIdx.x == 0) {
+		for (size_t i = 0; i < shapesNumber; i++)
+			delete spaceComponents[i];
+		delete[] spaceComponents;
+	}
 }
 
 __global__
@@ -130,8 +344,8 @@ void kernel(uchar4* image, size_t imageWidth, size_t imageHeight, Shape* shapes,
 	size_t blockStart = n * blockSize;
 	size_t blockEnd = blockStart + blockSize;
 
-	__shared__ ShapeSpace* shapeSpaces;
-	copyShapesToSharedMemory(&shapeSpaces, shapes, shapesNumber);
+	__shared__ Component** spaceComponents;
+	copyShapesToSharedMemory(spaceComponents, shapes, shapesNumber);
 
 	for (size_t index = blockStart; index < blockEnd; index++)
 	{
@@ -140,13 +354,15 @@ void kernel(uchar4* image, size_t imageWidth, size_t imageHeight, Shape* shapes,
 
 		Ray ray(Point(x, y, 0), Vector(0, 0, 1));
 
-		float light = trace(ray, shapeSpaces, shapesNumber);
+		float light = trace(ray, spaceComponents[0]);
 
 		image[index].x = light * 255;
 		image[index].y = light * 255;
 		image[index].z = light * 255;
 		image[index].w = light * 255;
 	}
+
+	freeShapes(spaceComponents, shapesNumber);
 }
 
 void renderRect(uchar4* image, const size_t imageWidth, const size_t imageHeight, Shape* shapes, size_t shapesNumber) {

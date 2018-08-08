@@ -258,27 +258,6 @@ public:
 		);
 	}
 
-protected:
-	__host__ __device__ AffineTransformation combine(float second[4][4]) const
-	{
-		AffineTransformation result;
-
-		for (int i = 0; i < 4; i++)
-		{
-			for (int j = 0; j < 4; j++)
-			{
-				result.matrix[i][j] = 0;
-
-				for (int k = 0; k < 4; k++)
-				{
-					result.matrix[i][j] += second[i][k] * matrix[k][j];
-				}
-			}
-		}
-
-		return result;
-	}
-
 	__host__ __device__ AffineTransformation rotateX(float c, float s) const
 	{
 		float rotation[4][4] = {
@@ -310,6 +289,27 @@ protected:
 			{ 0, 0, 0, 1 }
 		};
 		return combine(rotation);
+	}
+
+protected:
+	__host__ __device__ AffineTransformation combine(float second[4][4]) const
+	{
+		AffineTransformation result;
+
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				result.matrix[i][j] = 0;
+
+				for (int k = 0; k < 4; k++)
+				{
+					result.matrix[i][j] += second[i][k] * matrix[k][j];
+				}
+			}
+		}
+
+		return result;
 	}
 
 	__host__ __device__ Point transformByMatrix(const Point& point, const float matrix[4][4]) const
