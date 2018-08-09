@@ -68,31 +68,17 @@ void createPixelBuffer()
 
 void createDataBuffer()
 {
-	shapesNumber = 19;
+	shapesNumber = 5;
 
 	size_t size = shapesNumber * sizeof(Shape);
 	cudaMalloc(&shapes, size);
 
 	Shape data[] = {
-		Shape(ShapeType::Intersection, AffineTransformation().scale(100, 100, 100).rotateX(0.2).rotateY(0.4).translate(0, 0, 500), 1, 2), // 0
-		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0)), // 1
-		Shape(ShapeType::Intersection, AffineTransformation(), 3, 4), // 2
-		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateZ(0.f, 1.f)), // 3
-		Shape(ShapeType::Intersection, AffineTransformation(), 5, 6), // 4
-		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateZ(0.f, -1.f)), // 5
-		Shape(ShapeType::Intersection, AffineTransformation(), 7, 8), // 6
-		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateX(0.f, 1.f)), // 7
-		Shape(ShapeType::Intersection, AffineTransformation(), 9, 10), // 8
-		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateX(0.f, -1.f)), // 9
-		Shape(ShapeType::Intersection, AffineTransformation(), 11, 12), // 10
-		Shape(ShapeType::Plane, AffineTransformation().translate(0, 0.8, 0).rotateX(-1.f, 0.f)), // 11
-		Shape(ShapeType::Difference, AffineTransformation(), 13, 14), // 12
-		Shape(ShapeType::Sphere, AffineTransformation()), // 13
-		Shape(ShapeType::Union, AffineTransformation(), 15, 16), // 14
-		Shape(ShapeType::Cylinder, AffineTransformation()), // 15
-		Shape(ShapeType::Union, AffineTransformation(), 17, 18), // 16
-		Shape(ShapeType::Cylinder, AffineTransformation().rotateZ(-1.f, 0.f)), // 17
-		Shape(ShapeType::Cylinder, AffineTransformation().rotateX(-1.f, 0.f)), // 18
+		Shape(ShapeType::Difference, AffineTransformation().scale(200, 200, 200).translate(0, 0, 500), 1, 2), // 0
+		Shape(ShapeType::Sphere, AffineTransformation()), // 1
+		Shape(ShapeType::Union, AffineTransformation().translate(0, 0, -1). rotateX(1.4), 3, 4), // 2
+		Shape(ShapeType::Sphere, AffineTransformation().translate(-0.3, 0, 0)), // 3
+		Shape(ShapeType::Sphere, AffineTransformation().translate(0.3, 0, 0)), // 4
 	};
 
 	cudaMemcpy(shapes, data, size, cudaMemcpyHostToDevice);
