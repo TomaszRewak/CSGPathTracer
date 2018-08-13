@@ -198,7 +198,7 @@ public:
 		*this = AffineTransformation().translate(0, 0, d).rotateX(xAngle).rotateY(yAngle).translate(p.x, p.y, p.z);
 	}
 
-	__host__ __device__ AffineTransformation combine(AffineTransformation& second)
+	__host__ __device__ AffineTransformation combine(const AffineTransformation& second) const
 	{
 		return combine(second.matrix);
 	}
@@ -258,6 +258,7 @@ public:
 		);
 	}
 
+protected:
 	__host__ __device__ AffineTransformation rotateX(float c, float s) const
 	{
 		float rotation[4][4] = {
@@ -291,8 +292,7 @@ public:
 		return combine(rotation);
 	}
 
-protected:
-	__host__ __device__ AffineTransformation combine(float second[4][4]) const
+	__host__ __device__ AffineTransformation combine(const float second[4][4]) const
 	{
 		AffineTransformation result;
 
@@ -345,11 +345,6 @@ public:
 		AffineTransformation(affineTransformation)
 	{
 		inverse();
-	}
-
-	__device__ TwoWayAffineTransformation combine(TwoWayAffineTransformation& second)
-	{
-		return AffineTransformation::combine(second);
 	}
 
 	__device__ TwoWayAffineTransformation rotateX(float angle) const
