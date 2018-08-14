@@ -43,35 +43,29 @@ void createDataBuffer()
 		std::make_shared<PathTracer::SceneDefinition::DifferenceComponent>(
 			Math::AffineTransformation().scale(100, 100, 100).rotateX(rotation * 0.2).rotateY(rotation * -0.4),
 			std::make_shared<PathTracer::SceneDefinition::DifferenceComponent>(
-				Math::AffineTransformation(),
-				std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation()),
+				std::make_shared<PathTracer::SceneDefinition::SphereComponent>(),
 				std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
 					Math::AffineTransformation().scale(0.3, 0.3, 0.3),
 					std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-						Math::AffineTransformation(),
 						std::make_shared<PathTracer::SceneDefinition::CylinderComponent>(Math::AffineTransformation().rotateZ(1.57)),
 						std::make_shared<PathTracer::SceneDefinition::CylinderComponent>(Math::AffineTransformation().rotateX(1.57))
 						),
-					std::make_shared<PathTracer::SceneDefinition::CylinderComponent>(Math::AffineTransformation())
+					std::make_shared<PathTracer::SceneDefinition::CylinderComponent>()
 					)
 				),
 			std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
 				Math::AffineTransformation().scale(0.8, 0.8, 0.8),
 				std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-					Math::AffineTransformation(),
 					std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-						Math::AffineTransformation(),
 						std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0)),
 						std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateZ(1.57))
 						),
 					std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-						Math::AffineTransformation(),
 						std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateZ(-1.57)),
 						std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateX(1.57))
 						)
 					),
 				std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-					Math::AffineTransformation(),
 					std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateX(-1.57)),
 					std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateZ(-3.14))
 					)

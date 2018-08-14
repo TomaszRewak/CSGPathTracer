@@ -57,6 +57,13 @@ namespace PathTracer
 			) :
 				OperationComponent(localTransformation, leftOperand, rightOperand)
 			{ }
+
+			UnionComponent(
+				std::shared_ptr<Component> leftOperand,
+				std::shared_ptr<Component> rightOperand
+			) :
+				UnionComponent(Math::AffineTransformation(), leftOperand, rightOperand)
+			{ }
 		};
 
 		class DifferenceComponent : public OperationComponent<Common::ComponentType::Difference> {
@@ -68,6 +75,13 @@ namespace PathTracer
 			) :
 				OperationComponent(localTransformation, leftOperand, rightOperand)
 			{ }
+
+			DifferenceComponent(
+				std::shared_ptr<Component> leftOperand,
+				std::shared_ptr<Component> rightOperand
+			) :
+				DifferenceComponent(Math::AffineTransformation(), leftOperand, rightOperand)
+			{ }
 		};
 
 		class IntersectionComponent : public OperationComponent<Common::ComponentType::Intersection> {
@@ -78,6 +92,13 @@ namespace PathTracer
 				std::shared_ptr<Component> rightOperand
 			) :
 				OperationComponent(localTransformation, leftOperand, rightOperand)
+			{ }
+
+			IntersectionComponent(
+				std::shared_ptr<Component> leftOperand,
+				std::shared_ptr<Component> rightOperand
+			) :
+				IntersectionComponent(Math::AffineTransformation(), leftOperand, rightOperand)
 			{ }
 		};
 	}

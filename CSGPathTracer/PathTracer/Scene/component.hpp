@@ -1,5 +1,7 @@
 #pragma once
 
+#include <curand.h>
+
 #include "../Communication/component.hpp"
 #include "intersection.hpp"
 
@@ -31,23 +33,17 @@ namespace PathTracer
 				{
 					Intersection intersection;
 
-					switch (type)
-					{
-					case Common::ComponentType::Sphere:
+					if (type == Common::ComponentType::Sphere)
 						intersection = intersectSphere(ray, intersectionNumber);
-						break;
-					case Common::ComponentType::Cylinder:
+					else if (type == Common::ComponentType::Cylinder)
 						intersection = intersectCylinder(ray, intersectionNumber);
-						break;
-					case Common::ComponentType::Plane:
+					else if (type == Common::ComponentType::Plane)
 						intersection = intersectPlane(ray, intersectionNumber);
-						break;
-					}
 
-					if (!intersection.hit)
+					if (intersection.distance2 == INFINITY)
 						break;
-					
-					if ((!closestIntersection.hit || (intersection.position - ray.begin).norm2() < (closestIntersection.position - ray.begin).norm2()) &&
+
+					if (intersection.distance2 < closestIntersection.distance2 &&
 						validateDown(intersection.position))
 					{
 						closestIntersection = intersection;
@@ -162,10 +158,21 @@ namespace PathTracer
 				return true;
 			}
 
+			//__device__ Intersection randomSurfacePoint()
+			//{
+			//	if (type == Common::ComponentType::Sphere)
+			//		intersection = intersectSphere(ray, intersectionNumber);
+			//	else if (type == Common::ComponentType::Cylinder)
+			//		intersection = intersectCylinder(ray, intersectionNumber);
+			//	else if (type == Common::ComponentType::Plane)
+			//		intersection = intersectPlane(ray, intersectionNumber);
+			//}
+
 		protected:
-			__device__ Intersection globalIntersection(const Math::Point& position, const Math::Vector& normalVector)
+			__device__ Intersection globalIntersection(const Math::Ray& ray, const Math::Point& position, const Math::Vector& normalVector)
 			{
 				return Intersection(
+					ray.begin,
 					globalTransformation.transform(position),
 					globalTransformation.transform(normalVector) * normalDirection,
 					this
@@ -198,7 +205,7 @@ namespace PathTracer
 					if (d > 0)
 					{
 						Math::Point intersectionPoint = ray.begin + ray.direction * d;
-						return globalIntersection(intersectionPoint, intersectionPoint - Math::Point(0, 0, 0));
+						return globalIntersection(globalRay, intersectionPoint, intersectionPoint - Math::Point(0, 0, 0));
 					}
 				}
 
@@ -231,7 +238,7 @@ namespace PathTracer
 					if (d > 0)
 					{
 						Math::Point intersectionPoint = ray.begin + ray.direction * d;
-						return globalIntersection(intersectionPoint, intersectionPoint - Math::Point(0, intersectionPoint.y, 0));
+						return globalIntersection(globalRay, intersectionPoint, intersectionPoint - Math::Point(0, intersectionPoint.y, 0));
 					}
 				}
 
@@ -250,7 +257,7 @@ namespace PathTracer
 				if (d > 0)
 				{
 					Math::Point intersectionPoint = ray.begin + ray.direction * d;
-					return globalIntersection(intersectionPoint, Math::Vector(0., 1., 0.));
+					return globalIntersection(globalRay, intersectionPoint, Math::Vector(0., 1., 0.));
 				}
 
 				return Intersection();

@@ -35,6 +35,10 @@ namespace PathTracer
 			SphereComponent(Math::AffineTransformation localTransformation) :
 				ShapeComponent(localTransformation)
 			{ }
+
+			SphereComponent() :
+				SphereComponent(Math::AffineTransformation())
+			{ }
 		};
 
 		class PlaneComponent : public ShapeComponent<Common::ComponentType::Plane> {
@@ -42,12 +46,20 @@ namespace PathTracer
 			PlaneComponent(Math::AffineTransformation localTransformation) :
 				ShapeComponent(localTransformation)
 			{ }
+
+			PlaneComponent() :
+				PlaneComponent(Math::AffineTransformation())
+			{ }
 		};
 
 		class CylinderComponent : public ShapeComponent<Common::ComponentType::Cylinder> {
 		public:
 			CylinderComponent(Math::AffineTransformation localTransformation) :
 				ShapeComponent(localTransformation)
+			{ }
+
+			CylinderComponent() :
+				CylinderComponent(Math::AffineTransformation())
 			{ }
 		};
 	}
