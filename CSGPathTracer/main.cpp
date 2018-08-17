@@ -32,6 +32,15 @@ PathTracer::SceneDefinition::Scene scene;
 PathTracer::Communication::Component* zippedComponentsDevice = NULL;
 PathTracer::Communication::Component* zippedComponentsHost = NULL;
 
+size_t WangHash(size_t a) { // as described here : http://richiesams.blogspot.com/2015/03/creating-randomness-and-acummulating.html
+	a = (a ^ 61) ^ (a >> 16);
+	a = a + (a << 3);
+	a = a ^ (a >> 4);
+	a = a * 0x27d4eb2d;
+	a = a ^ (a >> 15);
+	return a;
+}
+
 float rotation = 0;
 void createDataBuffer()
 {
@@ -82,7 +91,8 @@ void createDataBuffer()
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57)));
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(1.57)));
 
-	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(100, 100, 100).translate(200, 200, 200).rotateZ(rotation * 0.5f)));
+	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(150, 150, 150).rotateZ(rotation * 0.5f)));
+	//scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(150, 150, -150).rotateZ(rotation * 0.5f)));
 
 	size_t newShapesNumber = scene.zipSize();
 	size_t size = newShapesNumber * sizeof(PathTracer::Communication::Component);
@@ -104,6 +114,8 @@ void createDataBuffer()
 	cudaMemcpy(zippedComponentsDevice, zippedComponentsHost, size, cudaMemcpyHostToDevice);
 }
 
+size_t frameNumber = 0;
+
 void renderImage()
 {
 	createDataBuffer();
@@ -114,7 +126,7 @@ void renderImage()
 	cudaGraphicsMapResources(1, &cudaBuffer);
 	cudaGraphicsResourceGetMappedPointer((void **)&imageArray, &imageArraySize, cudaBuffer);
 
-	PathTracer::renderRect(imageArray, width, height, zippedComponentsDevice, shapesNumber);
+	PathTracer::renderRect(imageArray, width, height, zippedComponentsDevice, shapesNumber, WangHash(frameNumber++));
 
 	cudaGraphicsUnmapResources(1, &cudaBuffer);
 }
@@ -185,7 +197,7 @@ void displayFunc() {
 
 	glutSwapBuffers();
 
-	glutTimerFunc(1, timerEvent, 0);
+	glutTimerFunc(30, timerEvent, 0);
 }
 
 void reshapeFunc(int w, int h)

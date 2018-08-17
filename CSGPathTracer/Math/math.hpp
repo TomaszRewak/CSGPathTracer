@@ -521,4 +521,30 @@ namespace Math
 				im[i] = inv[i] * det;
 		}
 	};
+
+	struct Intersection
+	{
+		Math::Point position;
+		Math::Vector normalVector;
+
+		float distance2;
+
+		__device__ Intersection() :
+			distance2(INFINITY)
+		{ }
+
+		__device__ Intersection(Math::Point rayBegin, Math::Point position, Math::Vector normalVector) :
+			position(position),
+			normalVector(normalVector),
+			distance2((position - rayBegin).norm2())
+		{ }
+
+		__device__ Intersection(Math::Point rayBegin, Math::Point position, Math::Vector normalVector, const AffineTransformation& transformation) :
+			Intersection(
+				transformation.transform(rayBegin),
+				transformation.transform(position),
+				transformation.transform(normalVector)
+			)
+		{ }
+	};
 }

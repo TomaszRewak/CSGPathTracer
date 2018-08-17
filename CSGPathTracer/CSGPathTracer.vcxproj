@@ -175,15 +175,18 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h" />
+    <ClInclude Include="Math\shapes.hpp" />
     <ClInclude Include="PathTracer\Common\component-type.hpp" />
     <ClInclude Include="PathTracer\SceneDefinition\component.hpp" />
     <ClInclude Include="PathTracer\SceneDefinition\operation-component.hpp" />
     <ClInclude Include="PathTracer\SceneDefinition\scene.hpp" />
     <ClInclude Include="PathTracer\SceneDefinition\shape-component.hpp" />
     <ClInclude Include="PathTracer\Scene\component.hpp" />
-    <ClInclude Include="PathTracer\Scene\intersection.hpp" />
-    <ClInclude Include="Utils\math.hpp" />
+    <ClInclude Include="PathTracer\Scene\intersection-finder.hpp" />
+    <ClInclude Include="Math\math.hpp" />
     <ClInclude Include="PathTracer\Communication\component.hpp" />
+    <ClInclude Include="PathTracer\Scene\intersection.hpp" />
+    <ClInclude Include="PathTracer\Scene\light-sources.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

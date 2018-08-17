@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Communication/component.hpp"
-#include "../../Utils/math.hpp"
+#include "../../Math/math.hpp"
 
 namespace PathTracer
 {
