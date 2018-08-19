@@ -91,8 +91,8 @@ void createDataBuffer()
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57)));
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(1.57)));
 
-	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(150, 150, 150).rotateZ(rotation * 0.5f)));
-	//scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(150, 150, -150).rotateZ(rotation * 0.5f)));
+	//scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(150, 150, 150).rotateZ(rotation * 0.5f)));
+	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(100, 0, 100).rotateY(rotation * 0.5f)));
 
 	size_t newShapesNumber = scene.zipSize();
 	size_t size = newShapesNumber * sizeof(PathTracer::Communication::Component);

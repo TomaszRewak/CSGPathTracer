@@ -527,23 +527,23 @@ namespace Math
 		Math::Point position;
 		Math::Vector normalVector;
 
-		float distance2;
+		float distance;
 
 		__device__ Intersection() :
-			distance2(INFINITY)
+			distance(INFINITY)
 		{ }
 
-		__device__ Intersection(Math::Point rayBegin, Math::Point position, Math::Vector normalVector) :
+		__device__ Intersection(Math::Point position, Math::Vector normalVector, float distance) :
 			position(position),
 			normalVector(normalVector),
-			distance2((position - rayBegin).norm2())
+			distance(distance)
 		{ }
 
-		__device__ Intersection(Math::Point rayBegin, Math::Point position, Math::Vector normalVector, const AffineTransformation& transformation) :
+		__device__ Intersection(Math::Point position, Math::Vector normalVector, float distance, const AffineTransformation& transformation) :
 			Intersection(
-				transformation.transform(rayBegin),
 				transformation.transform(position),
-				transformation.transform(normalVector)
+				transformation.transform(normalVector),
+				distance
 			)
 		{ }
 	};

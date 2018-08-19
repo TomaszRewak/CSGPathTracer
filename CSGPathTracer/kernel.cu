@@ -23,17 +23,17 @@ namespace PathTracer
 		{
 			Scene::Component* lightComponent = lightComponents[source];
 
-			for (size_t iteration = 0; iteration < 4; iteration++)
+			for (size_t iteration = 0; iteration < 1; iteration++)
 			{
 				Math::Ray lightRay = Scene::LightSources::generateLightRay(lightComponent, curandState);
 				Math::Ray connectionRay = Math::Ray(position, lightRay.begin);
 
-				Scene::Intersection closestIntersection;
+				Scene::Intersection closestIntersection(1.1f);
 				for (size_t componentNumber = 0; componentNumber < shapeComponentsNumber; componentNumber++)
 					Scene::IntersectionFinder::intersect(shapeComponents[componentNumber], connectionRay, closestIntersection);
 
 				if (closestIntersection.component == lightComponent)
-					illumination += 0.25;
+					illumination += 1.f;
 			}
 		}
 
@@ -56,7 +56,7 @@ namespace PathTracer
 			for (size_t componentNumber = 0; componentNumber < shapeComponentsNumber; componentNumber++)
 				Scene::IntersectionFinder::intersect(shapeComponents[componentNumber], ray, closestIntersection);
 
-			if (closestIntersection.distance2 != INFINITY)
+			if (closestIntersection.distance != INFINITY)
 			{
 				float angle = Math::Vector(0.5, 0.5, -1).unitVector().dotProduct(closestIntersection.normalVector.unitVector());
 
@@ -162,7 +162,8 @@ namespace PathTracer
 
 			float light = 0;
 
-			for (size_t sample = 0; sample < 2; sample++)
+#define RaySamples 2
+			for (size_t sample = 0; sample < RaySamples; sample++)
 			{
 				float xi = (float)x - imageWidth * 0.5 + curand_uniform(&randState) - 0.5;
 				float yi = (float)y - imageHeight * 0.5 + curand_uniform(&randState) - 0.5;
@@ -174,7 +175,7 @@ namespace PathTracer
 					randState);
 			}
 
-			light /= 2;
+			light /= RaySamples;
 
 			image[index].x = light * 255;
 			image[index].y = light * 255;

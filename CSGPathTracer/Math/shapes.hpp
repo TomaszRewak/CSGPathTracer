@@ -9,7 +9,7 @@ namespace Math
 	class Sphere
 	{
 	public:
-		__device__ static Intersection intersect(const Math::Ray& globalRay, const TwoWayAffineTransformation& transformation, size_t intersectionNumber)
+		__device__ static Intersection intersect(const Math::Ray& globalRay, const TwoWayAffineTransformation& transformation, float maxDistance, size_t intersectionNumber)
 		{
 			if (intersectionNumber > 1)
 				return Intersection();
@@ -32,10 +32,10 @@ namespace Math
 
 				float d = !intersectionNumber && d1 < d2 && d1 > 0 || intersectionNumber && d1 > d2 && d2 > 0 ? d1 : d2;
 
-				if (d > 0)
+				if (0 < d && d < maxDistance)
 				{
 					Math::Point intersectionPoint = ray.begin + ray.direction * d;
-					return Intersection(ray.begin, intersectionPoint, intersectionPoint - Math::Point(0, 0, 0), transformation);
+					return Intersection(intersectionPoint, intersectionPoint - Math::Point(0, 0, 0), d, transformation);
 				}
 			}
 
@@ -67,7 +67,7 @@ namespace Math
 	class Cylinder
 	{
 	public:
-		__device__ static Intersection intersect(const Math::Ray& globalRay, const TwoWayAffineTransformation& transformation, size_t intersectionNumber)
+		__device__ static Intersection intersect(const Math::Ray& globalRay, const TwoWayAffineTransformation& transformation, float maxDistance, size_t intersectionNumber)
 		{
 			if (intersectionNumber > 1)
 				return Intersection();
@@ -90,10 +90,10 @@ namespace Math
 
 				float d = !intersectionNumber && d1 < d2 && d1 > 0 || intersectionNumber && d1 > d2 && d2 > 0 ? d1 : d2;
 
-				if (d > 0)
+				if (0 < d && d < maxDistance)
 				{
 					Math::Point intersectionPoint = ray.begin + ray.direction * d;
-					return Intersection(ray.begin, intersectionPoint, intersectionPoint - Math::Point(0, intersectionPoint.y, 0), transformation);
+					return Intersection(intersectionPoint, intersectionPoint - Math::Point(0, intersectionPoint.y, 0), d, transformation);
 				}
 			}
 
@@ -125,7 +125,7 @@ namespace Math
 	class Plane
 	{
 	public:
-		__device__ static Intersection intersect(const Math::Ray& globalRay, const TwoWayAffineTransformation& transformation, size_t intersectionNumber)
+		__device__ static Intersection intersect(const Math::Ray& globalRay, const TwoWayAffineTransformation& transformation, float maxDistance, size_t intersectionNumber)
 		{
 			if (intersectionNumber > 0)
 				return Intersection();
@@ -134,10 +134,10 @@ namespace Math
 
 			float d = -ray.begin.y / ray.direction.dy;
 
-			if (d > 0)
+			if (0 < d && d < maxDistance)
 			{
 				Math::Point intersectionPoint = ray.begin + ray.direction * d;
-				return Intersection(ray.begin, intersectionPoint, Math::Vector(0., 1., 0.), transformation);
+				return Intersection(intersectionPoint, Math::Vector(0., 1., 0.), d, transformation);
 			}
 
 			return Intersection();

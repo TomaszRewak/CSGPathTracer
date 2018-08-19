@@ -19,18 +19,16 @@ namespace PathTracer
 					Math::Intersection intersection;
 
 					if (component->type == Common::ComponentType::Sphere)
-						intersection = Math::Sphere::intersect(ray, component->globalTransformation, intersectionNumber);
+						intersection = Math::Sphere::intersect(ray, component->globalTransformation, closestIntersection.distance, intersectionNumber);
 					else if (component->type == Common::ComponentType::Cylinder)
-						intersection = Math::Cylinder::intersect(ray, component->globalTransformation, intersectionNumber);
+						intersection = Math::Cylinder::intersect(ray, component->globalTransformation, closestIntersection.distance, intersectionNumber);
 					else if (component->type == Common::ComponentType::Plane)
-						intersection = Math::Plane::intersect(ray, component->globalTransformation, intersectionNumber);
+						intersection = Math::Plane::intersect(ray, component->globalTransformation, closestIntersection.distance, intersectionNumber);
 
-					if (intersection.distance2 == INFINITY)
+					if (intersection.distance == INFINITY)
 						break;
 
-					intersection.normalVector = intersection.normalVector * component->normalDirection;
-
-					if (intersection.distance2 < closestIntersection.distance2 && validateDown(component, intersection.position))
+					if (validateDown(component, intersection.position))
 						closestIntersection = Intersection(intersection, component);
 				}
 			}
