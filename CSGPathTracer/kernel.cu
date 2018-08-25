@@ -56,6 +56,7 @@ namespace PathTracer
 		curandState& curandState)
 	{
 #define MAX_RAY_DEPTH 5
+		Shading::Color light;
 		Shading::Filter filter;
 
 		for (size_t iteration = 0; ; iteration++)
@@ -71,7 +72,9 @@ namespace PathTracer
 				float randomNumber = curand_uniform(&curandState);
 
 				if (shading.emission > 0)
-					return filter * shading.color;
+				{
+					light = light + filter * shading.color * shading.emission;
+				}
 
 				filter = filter * shading.color;
 
@@ -81,7 +84,9 @@ namespace PathTracer
 					ray.direction = ray.direction - normalVector * 2 * (ray.direction.dotProduct(normalVector));
 					ray.begin = closestIntersection.position + ray.direction * 0.0001;
 
-					return filter * probeLightSources(ray.begin, shapeComponents, shapeComponentsNumber, lightComponents, lightComponentsNumber, curandState);
+					light = light + filter * probeLightSources(ray.begin, shapeComponents, shapeComponentsNumber, lightComponents, lightComponentsNumber, curandState);
+
+					return light;
 				}
 				else if (randomNumber < shading.reflectionProbability)
 				{
@@ -94,7 +99,7 @@ namespace PathTracer
 					ray.begin = closestIntersection.position + ray.direction * 0.0001;
 				}
 			}
-			else Shading::Color();
+			else return light;
 		}
 	}
 
@@ -185,7 +190,7 @@ namespace PathTracer
 			size_t index = y * imageWidth + x;
 
 			curandState randState;
-			curand_init(seed + index, 0, 0, &randState);
+			curand_init(seed + index, 0, 0, &randState); // worth remembering: curand_init(seed + index, 0, 0, &randState);
 
 			Math::Ray ray = camera.getRay(x, y, imageWidth, imageHeight, randState);
 
