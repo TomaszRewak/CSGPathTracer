@@ -26,7 +26,7 @@ GLuint pixelBuffer;
 cudaGraphicsResource *cudaBuffer;
 
 PathTracer::Rendering::Camera camera = PathTracer::Rendering::Camera(
-	Math::AffineTransformation().translate(100, 0, -600),
+	Math::AffineTransformation().translate(0, 0, -600),
 	5.f
 );
 
@@ -83,7 +83,7 @@ void createDataBuffer()
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(20, 20, 20).translate(100, 0, 0), emmisiveShaderA));
 
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0), whiteShader));
-	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(-1.57), whiteShader));
+	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(-1.57), whiteShader));
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(3.14), whiteShader));
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(1.57), whiteShader));
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), whiteShader));
@@ -115,12 +115,6 @@ size_t frameNumber = 0;
 
 void renderImage()
 {
-	if (frameNumber > 3)
-	{
-		frameNumber = 0;
-		camera.transformation = camera.transformation.translate(0, 0, 25).rotateZ(0.15);
-	}
-
 	createDataBuffer();
 
 	float4* imageArray;

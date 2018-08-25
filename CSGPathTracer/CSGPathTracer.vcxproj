@@ -176,7 +176,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   <ItemGroup>
     <ClInclude Include="kernel.h" />
     <ClInclude Include="Math\shapes.hpp" />
-    <ClInclude Include="PathTracer\Rendering\Camera.hpp" />
+    <ClInclude Include="PathTracer\Rendering\camera.hpp" />
     <ClInclude Include="PathTracer\Shading\color.hpp" />
     <ClInclude Include="PathTracer\Common\component-type.hpp" />
     <ClInclude Include="PathTracer\Shading\shader.hpp" />
