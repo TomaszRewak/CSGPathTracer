@@ -14,6 +14,8 @@ namespace PathTracer
 			Common::ComponentType type;
 			Math::TwoWayAffineTransformation globalTransformation;
 
+			Shading::Shader shader;
+
 			Component* parent;
 			Component* leftOperand;
 			Component* rightOperand;

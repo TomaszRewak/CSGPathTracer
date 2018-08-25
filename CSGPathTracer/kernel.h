@@ -10,5 +10,9 @@
 
 namespace PathTracer
 {
-	void renderRect(uchar4* image, const size_t imageWidth, const size_t imageHeight, Communication::Component* components, size_t shapesNumber, size_t frameNumber);
+	void renderRect(
+		float4* image, 
+		const size_t imageWidth, const size_t imageHeight, 
+		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
+		size_t frameNumber);
 }

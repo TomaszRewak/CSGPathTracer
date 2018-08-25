@@ -5,19 +5,23 @@
 #include <new.h>
 #include <curand.h>
 #include <curand_kernel.h>
+#include <algorithm>
+#include <random>
+#include <limits>
 
 #include "PathTracer/Scene/intersection-finder.hpp"
 #include "PathTracer/Scene/light-sources.hpp"
+#include "PathTracer/Shading/shader.hpp"
 
 namespace PathTracer
 {
-	__device__ float probeLightSources(
+	__device__ Shading::Color probeLightSources(
 		Math::Point& position,
 		Scene::Component** shapeComponents, size_t shapeComponentsNumber,
 		Scene::Component** lightComponents, size_t lightComponentsNumber,
 		curandState& curandState)
 	{
-		float illumination = 0;
+		Shading::Color illumination;
 
 		for (size_t source = 0; source < lightComponentsNumber; source++)
 		{
@@ -33,23 +37,28 @@ namespace PathTracer
 					Scene::IntersectionFinder::intersect(shapeComponents[componentNumber], connectionRay, closestIntersection);
 
 				if (closestIntersection.component == lightComponent)
-					illumination += 1.f;
+				{
+					auto shading = lightComponent->shader.getShading(closestIntersection.position);
+					float angle = fmaxf(0.f, connectionRay.direction.unitVector().dotProduct(-closestIntersection.normalVector.unitVector()));
+
+					illumination = illumination + shading.color * shading.emission * angle;
+				}
 			}
 		}
 
-		return fminf(illumination / lightComponentsNumber, 1.0f);
+		return illumination;
 	}
 
-	__device__ float trace(
+	__device__ Shading::Color trace(
 		Math::Ray& ray,
 		Scene::Component** shapeComponents, size_t shapeComponentsNumber,
 		Scene::Component** lightComponents, size_t lightComponentsNumber,
 		curandState& curandState)
 	{
-		float light = 0.f;
-		float factor = 1.f;
+#define MAX_RAY_DEPTH 3
+		Shading::Filter filter;
 
-		for (size_t iteration = 0; iteration < 2; iteration++)
+		for (size_t iteration = 0; ; iteration++)
 		{
 			Scene::Intersection closestIntersection;
 
@@ -58,34 +67,42 @@ namespace PathTracer
 
 			if (closestIntersection.distance != INFINITY)
 			{
-				float angle = Math::Vector(0.5, 0.5, -1).unitVector().dotProduct(closestIntersection.normalVector.unitVector());
+				Shading::Shading shading = closestIntersection.component->shader.getShading(closestIntersection.position);
+				float randomNumber = curand_uniform(&curandState);
 
-				Math::Vector normalVector = closestIntersection.normalVector.unitVector();
+				if (shading.emission > 0)
+					return filter * shading.color;
 
-				ray.direction = ray.direction - normalVector * 2 * (ray.direction.dotProduct(normalVector));
-				ray.begin = closestIntersection.position + ray.direction * 0.0001;
+				filter = filter * shading.color;
 
-				float illumination = probeLightSources(ray.begin, shapeComponents, shapeComponentsNumber, lightComponents, lightComponentsNumber, curandState);
+				if (iteration >= MAX_RAY_DEPTH || randomNumber > shading.reflectionProbability + shading.refractionProbability)
+				{
+					Math::Vector normalVector = closestIntersection.normalVector.unitVector();
+					ray.direction = ray.direction - normalVector * 2 * (ray.direction.dotProduct(normalVector));
+					ray.begin = closestIntersection.position + ray.direction * 0.0001;
 
-				illumination = 0.5f + illumination * 0.5f;
-
-				light += (0.1 + fmaxf(angle, 0) * 0.2 + illumination * 0.5) * factor ;
-				factor *= 0.25;
+					return filter * probeLightSources(ray.begin, shapeComponents, shapeComponentsNumber, lightComponents, lightComponentsNumber, curandState);
+				}
+				else if (randomNumber < shading.reflectionProbability)
+				{
+					Math::Vector normalVector = closestIntersection.normalVector.unitVector();
+					ray.direction = ray.direction - normalVector * 2 * (ray.direction.dotProduct(normalVector));
+					ray.begin = closestIntersection.position + ray.direction * 0.0001;
+				}
+				else
+				{
+					ray.begin = closestIntersection.position + ray.direction * 0.0001;
+				}
 			}
-			else break;
+			else Shading::Color();
 		}
-
-		return fminf(light, 1.f);
 	}
 
 	__device__ void copyShapesToSharedMemory(
+		Communication::Component* zippedComponents, size_t componentsNumber,
 		Scene::Component*& components,
-		Scene::Component**& shapeComponents,
-		Scene::Component**& lightComponents,
-		Communication::Component* zippedComponents,
-		size_t componentsNumber,
-		size_t& shapeComponentsNumber,
-		size_t& lightComponentsNumber)
+		Scene::Component**& shapeComponents, size_t& shapeComponentsNumber,
+		Scene::Component**& lightComponents, size_t& lightComponentsNumber)
 	{
 		if (!threadIdx.x && !threadIdx.y) {
 			shapeComponentsNumber = 0;
@@ -101,6 +118,7 @@ namespace PathTracer
 
 				components[i].type = shape.type;
 				components[i].globalTransformation = shape.globalTransformation;
+				components[i].shader = shape.shader;
 
 				if (shape.leftOperandOffset)
 				{
@@ -121,7 +139,7 @@ namespace PathTracer
 				if (shape.type == Common::ComponentType::Sphere || shape.type == Common::ComponentType::Cylinder || shape.type == Common::ComponentType::Plane)
 					shapeComponents[shapeComponentsNumber++] = &components[i];
 
-				if (shape.type == Common::ComponentType::Sphere && components[i].parent == NULL) // just a temporary hack
+				if (shape.shader.isLightSource())
 					lightComponents[lightComponentsNumber++] = &components[i];
 			}
 		}
@@ -142,13 +160,21 @@ namespace PathTracer
 		}
 	}
 
-	__global__ void kernel(uchar4* image, size_t imageWidth, size_t imageHeight, Communication::Component* zippedComponents, size_t componentsNumber, size_t hashedFrameNumber)
+	__global__ void kernel(
+		float4* image,
+		const size_t imageWidth, const size_t imageHeight,
+		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
+		size_t frameNumber, unsigned long long seed)
 	{
 		__shared__ Scene::Component* components;
 		__shared__ Scene::Component** shapeComponents; __shared__ size_t shapeComponentsNumber;
 		__shared__ Scene::Component** lightComponents; __shared__ size_t lightComponentsNumber;
 
-		copyShapesToSharedMemory(components, shapeComponents, lightComponents, zippedComponents, componentsNumber, shapeComponentsNumber, lightComponentsNumber);
+		copyShapesToSharedMemory(
+			zippedComponents, zippedComponentsNumber,
+			components,
+			shapeComponents, shapeComponentsNumber,
+			lightComponents, lightComponentsNumber);
 
 		size_t x = blockIdx.x * blockDim.x + threadIdx.x;
 		size_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -158,38 +184,40 @@ namespace PathTracer
 			size_t index = y * imageWidth + x;
 
 			curandState randState;
-			curand_init(index + hashedFrameNumber, 0, 0, &randState);
+			curand_init(seed + index, 0, 0, &randState);
 
-			float light = 0;
+			float xi = (float)x - imageWidth * 0.5 + curand_uniform(&randState) - 0.5;
+			float yi = (float)y - imageHeight * 0.5 + curand_uniform(&randState) - 0.5;
 
-#define RaySamples 2
-			for (size_t sample = 0; sample < RaySamples; sample++)
-			{
-				float xi = (float)x - imageWidth * 0.5 + curand_uniform(&randState) - 0.5;
-				float yi = (float)y - imageHeight * 0.5 + curand_uniform(&randState) - 0.5;
+			Shading::Color light = trace(
+				Math::Ray(Math::Point(0, 0, -(float)imageWidth), Math::Vector(xi, yi, imageWidth)),
+				shapeComponents, shapeComponentsNumber,
+				lightComponents, lightComponentsNumber,
+				randState);
 
-				light += trace(
-					Math::Ray(Math::Point(0, 0, -(float)imageWidth), Math::Vector(xi, yi, imageWidth)),
-					shapeComponents, shapeComponentsNumber,
-					lightComponents, lightComponentsNumber, 
-					randState);
-			}
-
-			light /= RaySamples;
-
-			image[index].x = light * 255;
-			image[index].y = light * 255;
-			image[index].z = light * 255;
-			image[index].w = light * 255;
+			image[index].x = (image[index].x * frameNumber + light.r) / (frameNumber + 1);
+			image[index].y = (image[index].y * frameNumber + light.g) / (frameNumber + 1);
+			image[index].z = (image[index].z * frameNumber + light.b) / (frameNumber + 1);
+			image[index].w = 1.f;
 		}
 
 		freeShapes(components, shapeComponents, lightComponents);
 	}
 
-	void renderRect(uchar4* image, const size_t imageWidth, const size_t imageHeight, Communication::Component* components, size_t shapesNumber, size_t hashedFrameNumber) {
+	std::default_random_engine generator;
+
+	void renderRect(
+		float4* image,
+		const size_t imageWidth, const size_t imageHeight,
+		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
+		size_t frameNumber)
+	{
 		dim3 block(8, 8, 1);
 		dim3 grid(imageWidth / block.x + 1, imageHeight / block.y + 1, 1);
 
-		kernel << <grid, block >> > (image, imageWidth, imageHeight, components, shapesNumber, hashedFrameNumber);
+		std::uniform_int_distribution<unsigned long long> distribution(0, std::numeric_limits<unsigned long long>::max());
+		unsigned long long seed = distribution(generator);
+
+		kernel << <grid, block >> > (image, imageWidth, imageHeight, zippedComponents, zippedComponentsNumber, frameNumber, seed);
 	}
 }

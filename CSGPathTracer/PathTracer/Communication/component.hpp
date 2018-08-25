@@ -2,6 +2,7 @@
 
 #include "../Common/component-type.hpp"
 #include "../../Math/math.hpp"
+#include "../Shading/shader.hpp"
 
 namespace PathTracer
 {
@@ -11,6 +12,8 @@ namespace PathTracer
 		{
 			Common::ComponentType type;
 			Math::AffineTransformation globalTransformation;
+
+			Shading::Shader shader;
 
 			size_t leftOperandOffset;
 			size_t rightOperandOffset;
@@ -22,13 +25,15 @@ namespace PathTracer
 			__host__ Component(
 				Common::ComponentType type,
 				Math::AffineTransformation globalTransformation,
-				size_t leftOperandOffset = 0,
-				size_t rightOperandOffset = 0
+				size_t leftOperandOffset,
+				size_t rightOperandOffset,
+				Shading::Shader shader
 			) :
 				type(type),
 				globalTransformation(globalTransformation),
 				leftOperandOffset(leftOperandOffset),
-				rightOperandOffset(rightOperandOffset)
+				rightOperandOffset(rightOperandOffset),
+				shader(shader)
 			{}
 		};
 	}

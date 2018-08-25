@@ -36,7 +36,8 @@ namespace PathTracer
 					OperationType,
 					transformation,
 					1,
-					1 + leftOperandSize
+					1 + leftOperandSize,
+					Shading::Shader()
 				);
 
 				return 1 + leftOperandSize + rightOperandSize;
