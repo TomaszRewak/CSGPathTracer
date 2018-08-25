@@ -7,12 +7,14 @@
 #include <device_functions.h>
 
 #include "PathTracer/Communication/component.hpp"
+#include "PathTracer\Rendering\Camera.hpp"
 
 namespace PathTracer
 {
 	void renderRect(
 		float4* image, 
 		const size_t imageWidth, const size_t imageHeight, 
+		Rendering::Camera camera,
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber);
 }

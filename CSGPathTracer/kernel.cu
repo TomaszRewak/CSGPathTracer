@@ -55,7 +55,7 @@ namespace PathTracer
 		Scene::Component** lightComponents, size_t lightComponentsNumber,
 		curandState& curandState)
 	{
-#define MAX_RAY_DEPTH 3
+#define MAX_RAY_DEPTH 5
 		Shading::Filter filter;
 
 		for (size_t iteration = 0; ; iteration++)
@@ -163,6 +163,7 @@ namespace PathTracer
 	__global__ void kernel(
 		float4* image,
 		const size_t imageWidth, const size_t imageHeight,
+		Rendering::Camera camera,
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber, unsigned long long seed)
 	{
@@ -186,18 +187,17 @@ namespace PathTracer
 			curandState randState;
 			curand_init(seed + index, 0, 0, &randState);
 
-			float xi = (float)x - imageWidth * 0.5 + curand_uniform(&randState) - 0.5;
-			float yi = (float)y - imageHeight * 0.5 + curand_uniform(&randState) - 0.5;
+			Math::Ray ray = camera.getRay(x, y, imageWidth, imageHeight, randState);
 
 			Shading::Color light = trace(
-				Math::Ray(Math::Point(0, 0, -(float)imageWidth), Math::Vector(xi, yi, imageWidth)),
+				ray,
 				shapeComponents, shapeComponentsNumber,
 				lightComponents, lightComponentsNumber,
 				randState);
 
-			image[index].x = (image[index].x * frameNumber + light.r) / (frameNumber + 1);
-			image[index].y = (image[index].y * frameNumber + light.g) / (frameNumber + 1);
-			image[index].z = (image[index].z * frameNumber + light.b) / (frameNumber + 1);
+			image[index].x = ((double)image[index].x * frameNumber + light.r) / (frameNumber + 1);
+			image[index].y = ((double)image[index].y * frameNumber + light.g) / (frameNumber + 1);
+			image[index].z = ((double)image[index].z * frameNumber + light.b) / (frameNumber + 1);
 			image[index].w = 1.f;
 		}
 
@@ -209,15 +209,16 @@ namespace PathTracer
 	void renderRect(
 		float4* image,
 		const size_t imageWidth, const size_t imageHeight,
+		Rendering::Camera camera,
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber)
 	{
-		dim3 block(8, 8, 1);
+		dim3 block(16, 16, 1);
 		dim3 grid(imageWidth / block.x + 1, imageHeight / block.y + 1, 1);
 
 		std::uniform_int_distribution<unsigned long long> distribution(0, std::numeric_limits<unsigned long long>::max());
 		unsigned long long seed = distribution(generator);
 
-		kernel << <grid, block >> > (image, imageWidth, imageHeight, zippedComponents, zippedComponentsNumber, frameNumber, seed);
+		kernel << <grid, block >> > (image, imageWidth, imageHeight, camera, zippedComponents, zippedComponentsNumber, frameNumber, seed);
 	}
 }

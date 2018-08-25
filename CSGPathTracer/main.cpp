@@ -14,18 +14,21 @@
 #include "kernel.h"
 #include "PathTracer\SceneDefinition\scene.hpp"
 #include "PathTracer\Shading\shader.hpp"
+#include "PathTracer\Rendering\Camera.hpp"
 
 float globalTime = 0;
 
-int windowWidth = 800;
-int windowHeight = 800;
-
-int width = 800;
-int height = 800;
+int width = 600;
+int height = 400;
 
 GLuint texture;
 GLuint pixelBuffer;
 cudaGraphicsResource *cudaBuffer;
+
+PathTracer::Rendering::Camera camera = PathTracer::Rendering::Camera(
+	Math::AffineTransformation().translate(100, 0, -600),
+	5.f
+);
 
 size_t zippedComponentsNumber = 0;
 PathTracer::SceneDefinition::Scene scene;
@@ -80,7 +83,7 @@ void createDataBuffer()
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(20, 20, 20).translate(100, 0, 0), emmisiveShaderA));
 
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0), whiteShader));
-	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(-1.57), whiteShader));
+	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(-1.57), whiteShader));
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(3.14), whiteShader));
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(1.57), whiteShader));
 	scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), whiteShader));
@@ -112,6 +115,12 @@ size_t frameNumber = 0;
 
 void renderImage()
 {
+	if (frameNumber > 3)
+	{
+		frameNumber = 0;
+		camera.transformation = camera.transformation.translate(0, 0, 25).rotateZ(0.15);
+	}
+
 	createDataBuffer();
 
 	float4* imageArray;
@@ -123,6 +132,7 @@ void renderImage()
 	PathTracer::renderRect(
 		imageArray,
 		width, height,
+		camera,
 		zippedComponentsDevice, zippedComponentsNumber,
 		frameNumber++);
 
@@ -177,17 +187,15 @@ void displayFunc() {
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_FLOAT, NULL);
 
-	float border = (float)(windowWidth - width) / 2 / windowWidth;
-
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f);
-	glVertex2f(border, border);
+	glVertex2f(0.0f, 0.0f);
 	glTexCoord2f(1.0f, 0.0f);
-	glVertex2f(1.0f - border, border);
+	glVertex2f(1.0f, 0.0f);
 	glTexCoord2f(1.0f, 1.0f);
-	glVertex2f(1.0f - border, 1.0f - border);
+	glVertex2f(1.0f, 1.0f);
 	glTexCoord2f(0.0f, 1.0f);
-	glVertex2f(border, 1.0f - border);
+	glVertex2f(0.0f, 1.0f);
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -215,7 +223,7 @@ void initGlut(int *argc, char **argv)
 	glutInit(argc, argv);
 
 	glutInitWindowPosition(-1, -1);
-	glutInitWindowSize(windowWidth, windowHeight);
+	glutInitWindowSize(width, height);
 
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutCreateWindow(argv[0]);
