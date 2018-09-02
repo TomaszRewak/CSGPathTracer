@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Common/component-type.hpp"
-#include "../../Math/math.hpp"
+#include "../../Math/geometry.h"
 #include "../Shading/shader.hpp"
 
 namespace PathTracer

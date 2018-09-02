@@ -122,7 +122,7 @@ namespace PathTracer
 				Communication::Component& shape = zippedComponents[i];
 
 				components[i].type = shape.type;
-				components[i].globalTransformation = shape.globalTransformation;
+				components[i].globalTransformation = Math::TwoWayAffineTransformation(shape.globalTransformation);
 				components[i].shader = shape.shader;
 
 				if (shape.leftOperandOffset)

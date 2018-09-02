@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Math/math.hpp"
+#include "../../Math/geometry.h"
 
 #include <curand_kernel.h>
 

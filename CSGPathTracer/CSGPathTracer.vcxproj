@@ -73,10 +73,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\bin</OutDir>
+    <OutDir>$(SolutionDir)..\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\bin</OutDir>
+    <OutDir>$(SolutionDir)..\bin\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -168,14 +168,23 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
-    <CudaCompile Include="sphere.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h" />
+    <ClInclude Include="Math\geometry.h" />
+    <ClInclude Include="Math\Geometry\affine-transformation.h" />
+    <ClInclude Include="Math\Geometry\intersection.h" />
+    <ClInclude Include="Math\Geometry\point.h" />
+    <ClInclude Include="Math\Geometry\ray.h" />
+    <ClInclude Include="Math\Geometry\two-way-affine-transformation.h" />
+    <ClInclude Include="Math\Geometry\vector.h" />
     <ClInclude Include="Math\shapes.hpp" />
+    <ClInclude Include="Math\Shapes\cylinder.h" />
+    <ClInclude Include="Math\Shapes\plane.h" />
+    <ClInclude Include="Math\Shapes\sphere.h" />
     <ClInclude Include="PathTracer\Rendering\camera.hpp" />
     <ClInclude Include="PathTracer\Shading\color.hpp" />
     <ClInclude Include="PathTracer\Common\component-type.hpp" />
@@ -186,7 +195,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="PathTracer\SceneDefinition\shape-component.hpp" />
     <ClInclude Include="PathTracer\Scene\component.hpp" />
     <ClInclude Include="PathTracer\Scene\intersection-finder.hpp" />
-    <ClInclude Include="Math\math.hpp" />
     <ClInclude Include="PathTracer\Communication\component.hpp" />
     <ClInclude Include="PathTracer\Scene\intersection.hpp" />
     <ClInclude Include="PathTracer\Scene\light-sources.hpp" />
