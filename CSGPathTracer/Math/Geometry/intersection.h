@@ -15,13 +15,13 @@ namespace Math
 			distance(INFINITY)
 		{ }
 
-		__device__ Intersection(Math::Point position, Math::Vector normalVector, float distance) :
+		__device__ Intersection(const Math::Point& position, const Math::Vector& normalVector, float distance) :
 			position(position),
 			normalVector(normalVector),
 			distance(distance)
 		{ }
 
-		__device__ Intersection(Math::Point position, Math::Vector normalVector, float distance, const AffineTransformation& transformation) :
+		__device__ Intersection(const Math::Point& position, const Math::Vector& normalVector, float distance, const AffineTransformation& transformation) :
 			Intersection(
 				transformation.transform(position),
 				transformation.transform(normalVector),
