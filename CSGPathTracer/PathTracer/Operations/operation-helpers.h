@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Scene/component.hpp"
+#include "../Scene/component.h"
 
 namespace PathTracer
 {

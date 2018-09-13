@@ -183,7 +183,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="Math\Geometry\ray.h" />
     <ClInclude Include="Math\Geometry\two-way-affine-transformation.h" />
     <ClInclude Include="Math\Geometry\vector.h" />
-    <ClInclude Include="Math\shapes.hpp" />
+    <ClInclude Include="Math\shapes.h" />
     <ClInclude Include="Math\Shapes\cylinder.h" />
     <ClInclude Include="Math\Shapes\plane.h" />
     <ClInclude Include="Math\Shapes\sphere.h" />
@@ -191,19 +191,19 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="PathTracer\Operations\operation-helpers.h" />
     <ClInclude Include="PathTracer\Operations\shape-operation.h" />
     <ClInclude Include="PathTracer\Operations\standard-operations.h" />
-    <ClInclude Include="PathTracer\Rendering\camera.hpp" />
+    <ClInclude Include="PathTracer\Rendering\camera.h" />
     <ClInclude Include="PathTracer\scene.h" />
     <ClInclude Include="PathTracer\Scene\component-configuration.h" />
-    <ClInclude Include="PathTracer\Shading\color.hpp" />
+    <ClInclude Include="PathTracer\Shading\color.h" />
     <ClInclude Include="Communication\component-type.h" />
-    <ClInclude Include="PathTracer\Shading\shader.hpp" />
+    <ClInclude Include="PathTracer\Shading\shader.h" />
     <ClInclude Include="Scene\Components\component-base.h" />
-    <ClInclude Include="Scene\Components\operation-component.hpp" />
-    <ClInclude Include="Scene\scene.hpp" />
-    <ClInclude Include="Scene\Components\shape-component.hpp" />
-    <ClInclude Include="PathTracer\Scene\component.hpp" />
+    <ClInclude Include="Scene\Components\operation-component.h" />
+    <ClInclude Include="Scene\scene.h" />
+    <ClInclude Include="Scene\Components\shape-component.h" />
+    <ClInclude Include="PathTracer\Scene\component.h" />
     <ClInclude Include="Communication\component.h" />
-    <ClInclude Include="PathTracer\Scene\intersection.hpp" />
+    <ClInclude Include="PathTracer\Scene\intersection.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

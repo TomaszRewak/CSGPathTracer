@@ -12,9 +12,9 @@
 #include <iostream>
 
 #include "kernel.h"
-#include "Scene\scene.hpp"
-#include "PathTracer\Shading\shader.hpp"
-#include "PathTracer\Rendering\Camera.hpp"
+#include "Scene/scene.h"
+#include "PathTracer/Shading/shader.h"
+#include "PathTracer/Rendering/camera.h"
 
 float globalTime = 0;
 

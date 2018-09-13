@@ -1,4 +1,4 @@
 #pragma once
 
-#include "Scene\component.hpp"
-#include "Rendering\camera.hpp"
+#include "Scene/component.h"
+#include "Rendering/camera.h"

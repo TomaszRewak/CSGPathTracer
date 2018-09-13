@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "Components\operation-component.hpp"
-#include "Components\shape-component.hpp"
+#include "Components/operation-component.h"
+#include "Components/shape-component.h"
 
 namespace Scene
 {

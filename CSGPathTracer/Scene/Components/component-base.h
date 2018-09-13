@@ -1,7 +1,7 @@
 #pragma once
 
-#include "..\..\Communication\component.h"
-#include "..\..\Math\geometry.h"
+#include "../../Communication/component.h"
+#include "../../Math/geometry.h"
 
 namespace Scene
 {

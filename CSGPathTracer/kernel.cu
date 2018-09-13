@@ -9,9 +9,9 @@
 #include <random>
 #include <limits>
 
-#include "PathTracer\scene.h"
-#include "PathTracer\operations.h"
-#include "Communication\component-mapping.h"
+#include "PathTracer/scene.h"
+#include "PathTracer/operations.h"
+#include "Communication/component-mapping.h"
 
 namespace PathTracer
 {

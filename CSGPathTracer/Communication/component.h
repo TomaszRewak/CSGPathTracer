@@ -2,7 +2,7 @@
 
 #include "component-type.h"
 #include "../Math/geometry.h"
-#include "../PathTracer/Shading/shader.hpp"
+#include "../PathTracer/Shading/shader.h"
 
 namespace Communication
 {

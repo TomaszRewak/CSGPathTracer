@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\PathTracer\operations.h"
+#include "../PathTracer/operations.h"
 #include "component.h"
 
 namespace Communication

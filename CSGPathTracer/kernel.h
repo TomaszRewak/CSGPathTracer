@@ -6,8 +6,8 @@
 #include <device_launch_parameters.h>
 #include <device_functions.h>
 
-#include "Communication\component.h"
-#include "PathTracer\Rendering\Camera.hpp"
+#include "Communication/component.h"
+#include "PathTracer/Rendering/Camera.h"
 
 namespace PathTracer
 {
