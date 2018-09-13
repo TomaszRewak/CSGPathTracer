@@ -9,32 +9,37 @@
 #include <random>
 #include <limits>
 
-#include "PathTracer/Scene/intersection-finder.hpp"
-#include "PathTracer/Scene/light-sources.hpp"
-#include "PathTracer/Shading/shader.hpp"
+#include "PathTracer\scene.h"
+#include "PathTracer\operations.h"
+#include "Communication\component-mapping.h"
 
 namespace PathTracer
 {
 	__device__ Shading::Color probeLightSources(
 		Math::Point& position,
-		Scene::Component** shapeComponents, size_t shapeComponentsNumber,
-		Scene::Component** lightComponents, size_t lightComponentsNumber,
+		Component** shapeComponents, size_t shapeComponentsNumber,
+		Component** lightComponents, size_t lightComponentsNumber,
 		curandState& curandState)
 	{
 		Shading::Color illumination;
 
 		for (size_t source = 0; source < lightComponentsNumber; source++)
 		{
-			Scene::Component* lightComponent = lightComponents[source];
+			Component* lightComponent = lightComponents[source];
 
 			for (size_t iteration = 0; iteration < 1; iteration++)
 			{
-				Math::Ray lightRay = Scene::LightSources::generateLightRay(lightComponent, curandState);
+				Math::Ray lightRay = lightComponent->generateRay(curandState);
 				Math::Ray connectionRay = Math::Ray(position, lightRay.begin);
 
-				Scene::Intersection closestIntersection(1.1f);
+				Intersection closestIntersection(1.1f);
 				for (size_t componentNumber = 0; componentNumber < shapeComponentsNumber; componentNumber++)
-					Scene::IntersectionFinder::intersect(shapeComponents[componentNumber], connectionRay, closestIntersection);
+				{
+					Intersection intersection = shapeComponents[componentNumber]->intersect(connectionRay, closestIntersection.distance);
+
+					if (intersection.distance != INFINITY)
+						closestIntersection = intersection;
+				}
 
 				if (closestIntersection.component == lightComponent)
 				{
@@ -51,8 +56,8 @@ namespace PathTracer
 
 	__device__ Shading::Color trace(
 		Math::Ray& ray,
-		Scene::Component** shapeComponents, size_t shapeComponentsNumber,
-		Scene::Component** lightComponents, size_t lightComponentsNumber,
+		Component** shapeComponents, size_t shapeComponentsNumber,
+		Component** lightComponents, size_t lightComponentsNumber,
 		curandState& curandState)
 	{
 #define MAX_RAY_DEPTH 5
@@ -61,10 +66,15 @@ namespace PathTracer
 
 		for (size_t iteration = 0; ; iteration++)
 		{
-			Scene::Intersection closestIntersection;
+			Intersection closestIntersection;
 
 			for (size_t componentNumber = 0; componentNumber < shapeComponentsNumber; componentNumber++)
-				Scene::IntersectionFinder::intersect(shapeComponents[componentNumber], ray, closestIntersection);
+			{
+				Intersection intersection = shapeComponents[componentNumber]->intersect(ray, closestIntersection.distance);
+
+				if (intersection.distance < closestIntersection.distance)
+					closestIntersection = intersection;
+			}
 
 			if (closestIntersection.distance != INFINITY)
 			{
@@ -105,56 +115,29 @@ namespace PathTracer
 
 	__device__ void copyShapesToSharedMemory(
 		Communication::Component* zippedComponents, size_t componentsNumber,
-		Scene::Component*& components,
-		Scene::Component**& shapeComponents, size_t& shapeComponentsNumber,
-		Scene::Component**& lightComponents, size_t& lightComponentsNumber)
+		Component*& components,
+		Component**& shapeComponents, size_t& shapeComponentsNumber,
+		Component**& lightComponents, size_t& lightComponentsNumber)
 	{
 		if (!threadIdx.x && !threadIdx.y) {
 			shapeComponentsNumber = 0;
 			lightComponentsNumber = 0;
 
-			components = new Scene::Component[componentsNumber];
-			shapeComponents = new Scene::Component*[componentsNumber];
-			lightComponents = new Scene::Component*[componentsNumber];
-
-			for (size_t i = 0; i < componentsNumber; i++)
-			{
-				Communication::Component& shape = zippedComponents[i];
-
-				components[i].type = shape.type;
-				components[i].globalTransformation = Math::TwoWayAffineTransformation(shape.globalTransformation);
-				components[i].shader = shape.shader;
-
-				if (shape.leftOperandOffset)
-				{
-					components[i].leftOperand = &components[i + shape.leftOperandOffset];
-					components[i + shape.leftOperandOffset].parent = &components[i];
-					components[i + shape.leftOperandOffset].normalDirection = components[i].normalDirection;
-				}
-				if (shape.rightOperandOffset)
-				{
-					components[i].rightOperand = &components[i + shape.rightOperandOffset];
-					components[i + shape.rightOperandOffset].parent = &components[i];
-					components[i + shape.rightOperandOffset].normalDirection = components[i].normalDirection;
-
-					if (shape.type == Common::ComponentType::Difference)
-						components[i + shape.rightOperandOffset].normalDirection *= -1;
-				}
-
-				if (shape.type == Common::ComponentType::Sphere || shape.type == Common::ComponentType::Cylinder || shape.type == Common::ComponentType::Plane)
-					shapeComponents[shapeComponentsNumber++] = &components[i];
-
-				if (shape.shader.isLightSource())
-					lightComponents[lightComponentsNumber++] = &components[i];
-			}
+			Communication::mapComponents(
+				zippedComponents, componentsNumber,
+				components,
+				shapeComponents, shapeComponentsNumber,
+				lightComponents, lightComponentsNumber
+			);
 		}
+
 		__syncthreads();
 	}
 
 	__device__ void freeShapes(
-		Scene::Component* components,
-		Scene::Component**& shapeComponents,
-		Scene::Component**& lightComponents)
+		Component* components,
+		Component**& shapeComponents,
+		Component**& lightComponents)
 	{
 		__syncthreads();
 
@@ -172,9 +155,9 @@ namespace PathTracer
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber, unsigned long long seed)
 	{
-		__shared__ Scene::Component* components;
-		__shared__ Scene::Component** shapeComponents; __shared__ size_t shapeComponentsNumber;
-		__shared__ Scene::Component** lightComponents; __shared__ size_t lightComponentsNumber;
+		__shared__ Component* components;
+		__shared__ Component** shapeComponents; __shared__ size_t shapeComponentsNumber;
+		__shared__ Component** lightComponents; __shared__ size_t lightComponentsNumber;
 
 		copyShapesToSharedMemory(
 			zippedComponents, zippedComponentsNumber,

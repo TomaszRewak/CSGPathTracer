@@ -173,6 +173,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Communication\component-configurations.h" />
+    <ClInclude Include="Communication\component-mapping.h" />
     <ClInclude Include="kernel.h" />
     <ClInclude Include="Math\geometry.h" />
     <ClInclude Include="Math\Geometry\affine-transformation.h" />
@@ -185,19 +187,23 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="Math\Shapes\cylinder.h" />
     <ClInclude Include="Math\Shapes\plane.h" />
     <ClInclude Include="Math\Shapes\sphere.h" />
+    <ClInclude Include="PathTracer\operations.h" />
+    <ClInclude Include="PathTracer\Operations\operation-helpers.h" />
+    <ClInclude Include="PathTracer\Operations\shape-operation.h" />
+    <ClInclude Include="PathTracer\Operations\standard-operations.h" />
     <ClInclude Include="PathTracer\Rendering\camera.hpp" />
+    <ClInclude Include="PathTracer\scene.h" />
+    <ClInclude Include="PathTracer\Scene\component-configuration.h" />
     <ClInclude Include="PathTracer\Shading\color.hpp" />
-    <ClInclude Include="PathTracer\Common\component-type.hpp" />
+    <ClInclude Include="Communication\component-type.h" />
     <ClInclude Include="PathTracer\Shading\shader.hpp" />
-    <ClInclude Include="PathTracer\SceneDefinition\component.hpp" />
-    <ClInclude Include="PathTracer\SceneDefinition\operation-component.hpp" />
-    <ClInclude Include="PathTracer\SceneDefinition\scene.hpp" />
-    <ClInclude Include="PathTracer\SceneDefinition\shape-component.hpp" />
+    <ClInclude Include="Scene\Components\component-base.h" />
+    <ClInclude Include="Scene\Components\operation-component.hpp" />
+    <ClInclude Include="Scene\scene.hpp" />
+    <ClInclude Include="Scene\Components\shape-component.hpp" />
     <ClInclude Include="PathTracer\Scene\component.hpp" />
-    <ClInclude Include="PathTracer\Scene\intersection-finder.hpp" />
-    <ClInclude Include="PathTracer\Communication\component.hpp" />
+    <ClInclude Include="Communication\component.h" />
     <ClInclude Include="PathTracer\Scene\intersection.hpp" />
-    <ClInclude Include="PathTracer\Scene\light-sources.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

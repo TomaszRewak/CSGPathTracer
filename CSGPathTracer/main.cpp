@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include "kernel.h"
-#include "PathTracer\SceneDefinition\scene.hpp"
+#include "Scene\scene.hpp"
 #include "PathTracer\Shading\shader.hpp"
 #include "PathTracer\Rendering\Camera.hpp"
 
@@ -31,9 +31,9 @@ PathTracer::Rendering::Camera camera = PathTracer::Rendering::Camera(
 );
 
 size_t zippedComponentsNumber = 0;
-PathTracer::SceneDefinition::Scene scene;
-PathTracer::Communication::Component* zippedComponentsDevice = NULL;
-PathTracer::Communication::Component* zippedComponentsHost = NULL;
+Scene::Scene scene;
+Communication::Component* zippedComponentsDevice = NULL;
+Communication::Component* zippedComponentsHost = NULL;
 
 void createDataBuffer()
 {
@@ -51,52 +51,52 @@ void createDataBuffer()
 		scene.components.clear();
 
 		scene.components.push_back(
-			std::make_shared<PathTracer::SceneDefinition::DifferenceComponent>(
+			std::make_shared<Scene::DifferenceComponent>(
 				Math::AffineTransformation().scale(100, 100, 100).rotateX(-0.36).rotateY(0.52),
-				std::make_shared<PathTracer::SceneDefinition::DifferenceComponent>(
-					std::make_shared<PathTracer::SceneDefinition::SphereComponent>(redShader),
-					std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
+				std::make_shared<Scene::DifferenceComponent>(
+					std::make_shared<Scene::SphereComponent>(redShader),
+					std::make_shared<Scene::UnionComponent>(
 						Math::AffineTransformation().scale(0.5, 0.5, 0.5),
-						std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-							std::make_shared<PathTracer::SceneDefinition::CylinderComponent>(Math::AffineTransformation().rotateZ(1.57), greenShader),
-							std::make_shared<PathTracer::SceneDefinition::CylinderComponent>(Math::AffineTransformation().rotateX(1.57), greenShader)
+						std::make_shared<Scene::UnionComponent>(
+							std::make_shared<Scene::CylinderComponent>(Math::AffineTransformation().rotateZ(1.57), greenShader),
+							std::make_shared<Scene::CylinderComponent>(Math::AffineTransformation().rotateX(1.57), greenShader)
 							),
-						std::make_shared<PathTracer::SceneDefinition::CylinderComponent>(greenShader)
+						std::make_shared<Scene::CylinderComponent>(greenShader)
 						)
 					),
-				std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
+				std::make_shared<Scene::UnionComponent>(
 					Math::AffineTransformation().scale(0.8, 0.8, 0.8),
-					std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-						std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-							std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0), blueShader),
-							std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateZ(1.57), blueShader)
+					std::make_shared<Scene::UnionComponent>(
+						std::make_shared<Scene::UnionComponent>(
+							std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0), blueShader),
+							std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateZ(1.57), blueShader)
 							),
-						std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-							std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateZ(-1.57), blueShader),
-							std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateX(1.57), blueShader)
+						std::make_shared<Scene::UnionComponent>(
+							std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateZ(-1.57), blueShader),
+							std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateX(1.57), blueShader)
 							)
 						),
-					std::make_shared<PathTracer::SceneDefinition::UnionComponent>(
-						std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateX(-1.57), blueShader),
-						std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateZ(-3.14), blueShader)
+					std::make_shared<Scene::UnionComponent>(
+						std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateX(-1.57), blueShader),
+						std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -1, 0).rotateZ(-3.14), blueShader)
 						)
 					)
 				)
 		);
-
-		scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(20, 20, 20).translate(100, 0, 0), emmisiveShaderB));
-
-		scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0), wallShaderB));
-		scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(-1.57), wallShaderC));
-		scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(3.14), wallShaderB));
-		scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(1.57), wallShaderA));
-		scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), wallShaderA));
-		scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(1.57), wallShaderC));
-
-		scene.components.push_back(std::make_shared<PathTracer::SceneDefinition::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(0, 175, -200), emmisiveShaderA));
+		
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(20, 20, 20).translate(100, 0, 0), emmisiveShaderB));
+		
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0), wallShaderB));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(-1.57), wallShaderC));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(3.14), wallShaderB));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(1.57), wallShaderA));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), wallShaderA));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(1.57), wallShaderC));
+		
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(0, 175, -200), emmisiveShaderA));
 
 		size_t newShapesNumber = scene.zipSize();
-		size_t size = newShapesNumber * sizeof(PathTracer::Communication::Component);
+		size_t size = newShapesNumber * sizeof(Communication::Component);
 
 		if (newShapesNumber != zippedComponentsNumber)
 		{
@@ -105,7 +105,7 @@ void createDataBuffer()
 			if (zippedComponentsDevice)
 				cudaFree(zippedComponentsDevice);
 
-			zippedComponentsHost = new PathTracer::Communication::Component[newShapesNumber];
+			zippedComponentsHost = new Communication::Component[newShapesNumber];
 			cudaMalloc(&zippedComponentsDevice, size);
 		}
 
@@ -164,11 +164,6 @@ void createPixelBuffer()
 
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	cudaGraphicsGLRegisterBuffer(&cudaBuffer, pixelBuffer, cudaGraphicsRegisterFlagsNone);
-}
-
-void bindCuda()
-{
-	//cudaGraphicsGLRegisterImage()
 }
 
 void timerEvent(int value) {

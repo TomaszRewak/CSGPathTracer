@@ -1,6 +1,6 @@
 #pragma once
 
-#include "affine-transformation.h"
+#include "point.h"
 
 namespace Math
 {
@@ -11,22 +11,18 @@ namespace Math
 
 		float distance;
 
-		__device__ Intersection() :
+		__device__ __host__ Intersection() :
 			distance(INFINITY)
 		{ }
 
-		__device__ Intersection(const Math::Point& position, const Math::Vector& normalVector, float distance) :
+		__device__ __host__ explicit Intersection(float maxDistance) :
+			distance(maxDistance)
+		{ }
+
+		__device__ __host__ Intersection(const Math::Point& position, const Math::Vector& normalVector, float distance) :
 			position(position),
 			normalVector(normalVector),
 			distance(distance)
-		{ }
-
-		__device__ Intersection(const Math::Point& position, const Math::Vector& normalVector, float distance, const AffineTransformation& transformation) :
-			Intersection(
-				transformation.transform(position),
-				transformation.transform(normalVector),
-				distance
-			)
 		{ }
 	};
 }

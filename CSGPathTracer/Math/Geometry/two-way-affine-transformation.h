@@ -71,6 +71,15 @@ namespace Math
 			);
 		}
 
+		__device__ Intersection inverse(const Intersection& intersection)
+		{
+			return Intersection(
+				inverse(intersection.position),
+				inverse(intersection.normalVector),
+				intersection.distance
+			);
+		}
+
 	protected:
 		__device__ void inverse()
 		{

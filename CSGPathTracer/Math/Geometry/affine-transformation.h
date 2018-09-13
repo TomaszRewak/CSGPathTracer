@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ray.h"
+#include "intersection.h"
 
 namespace Math
 {
@@ -79,6 +80,15 @@ namespace Math
 			return Ray(
 				transform(vector.begin),
 				transform(vector.direction)
+			);
+		}
+
+		__host__ __device__ Intersection transform(const Intersection& intersection) const
+		{
+			return Intersection(
+				transform(intersection.position),
+				transform(intersection.normalVector),
+				intersection.distance
 			);
 		}
 

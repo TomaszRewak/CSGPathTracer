@@ -1,34 +1,29 @@
 #pragma once
 
-#include "component.hpp"
-#include "../../Math/shapes.hpp"
+#include "../../Math/geometry.h"
 
 namespace PathTracer
 {
-	namespace Scene
+	struct Component;
+
+	struct Intersection : public Math::Intersection
 	{
-		struct Intersection : public Math::Intersection
-		{
-			const Component* component;
+		Math::Intersection intersection;
+		const Component* component;
 
-			__device__ Intersection() :
-				Math::Intersection(),
-				component(NULL)
-			{ }
+		__device__ Intersection() :
+			intersection(),
+			component(NULL)
+		{ }
 
-			__device__ Intersection(float maxDistance) :
-				Math::Intersection(),
-				component(NULL)
-			{ 
-				distance = maxDistance;
-			}
+		__device__ explicit Intersection(float maxDistance) :
+			Math::Intersection(maxDistance),
+			component(NULL)
+		{ }
 
-			__device__ Intersection(const Math::Intersection& intersection, const Component* component) :
-				Math::Intersection(intersection),
-				component(component)
-			{ 
-				normalVector = normalVector * component->normalDirection;
-			}
-		};
-	}
+		__device__ Intersection(const Math::Intersection& intersection, const Component* component) :
+			Math::Intersection(intersection),
+			component(component)
+		{ }
+	};
 }

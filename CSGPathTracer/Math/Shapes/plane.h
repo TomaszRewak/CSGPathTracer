@@ -8,41 +8,36 @@ namespace Math
 {
 	namespace Plane
 	{
-		__device__ Intersection intersect(const Ray& globalRay, const TwoWayAffineTransformation& transformation, float maxDistance, size_t intersectionNumber)
+		__device__ Intersection* intersect(Intersection* intersections, const Ray& ray, float maxDistance)
 		{
-			if (intersectionNumber > 0)
-				return Intersection();
-
-			Ray ray = transformation.inverse(globalRay);
-
 			float d = -ray.begin.y / ray.direction.dy;
 
 			if (0 < d && d < maxDistance)
 			{
-				Point intersectionPoint = ray.begin + ray.direction * d;
-				return Intersection(intersectionPoint, Vector(0., 1., 0.), d, transformation);
+				Point point = ray.begin + ray.direction * d;
+				*intersections = Intersection(point, Vector(0., 1., 0.), d);
+				intersections++;
 			}
 
-			return Intersection();
+			return intersections;
 		}
 
-		__device__ bool validateIntersection(const Point& position, const TwoWayAffineTransformation& transformation)
+		__device__ bool validateIntersection(const Point& point)
 		{
-			Point point = transformation.inverse(position);
 			return point.y <= 0.0f;
 		}
 
-		__device__ Ray randomSurfaceRay(const AffineTransformation& transformation, curandState& randomNumberGenerator)
+		__device__ Ray randomSurfaceRay(curandState& randomNumberGenerator)
 		{
 			float x = 1 - 2 * curand_uniform(&randomNumberGenerator);
 			float y = 0;
 			float z = 1 - 2 * curand_uniform(&randomNumberGenerator);
 
 
-			return transformation.transform(Ray(
+			return Ray(
 				Point(x, y, z),
 				Vector(0, 1, 0)
-			));
+			);
 		}
 	}
 }
