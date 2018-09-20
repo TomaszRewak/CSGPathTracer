@@ -16,8 +16,6 @@
 #include "PathTracer/Shading/shader.h"
 #include "PathTracer/Rendering/camera.h"
 
-float globalTime = 0;
-
 int width = 600;
 int height = 400;
 
@@ -172,7 +170,7 @@ void timerEvent(int value) {
 }
 
 void displayFunc() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	renderImage();
 
@@ -195,7 +193,7 @@ void displayFunc() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-	glutSwapBuffers();
+	//glutSwapBuffers();
 
 	glutTimerFunc(1, timerEvent, 0);
 }
@@ -219,11 +217,14 @@ void initGlut(int *argc, char **argv)
 	glutInitWindowPosition(-1, -1);
 	glutInitWindowSize(width, height);
 
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+	glutInitDisplayMode(GLUT_RGBA);
 	glutCreateWindow(argv[0]);
 
 	glutDisplayFunc(displayFunc);
 	glutReshapeFunc(reshapeFunc);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glewInit();
 }
