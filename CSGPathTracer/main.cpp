@@ -37,14 +37,14 @@ void createDataBuffer()
 {
 	if (zippedComponentsDevice == NULL)
 	{
-		auto wallShaderA = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.7, 0.3, 0.5, 0, PathTracer::Shading::Color(0.9, 0.9, 0.9)));
-		auto wallShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.7, 0.3, 0.5, 0, PathTracer::Shading::Color(0.9, 0.9, 0.5)));
-		auto wallShaderC = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.7, 0.3, 0, 0, PathTracer::Shading::Color(0.5, 0.9, 0.9)));
-		auto redShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.7, 0.3, 1., 0, PathTracer::Shading::Color(0.9, 0.6, 0.8)));
-		auto greenShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.7, 0.3, 0.3, 0, PathTracer::Shading::Color(0.6, 0.9, 0.8)));
-		auto blueShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.7, 0.3, 0.8, 0, PathTracer::Shading::Color(0.6, 0.6, 0.9)));
-		auto emmisiveShaderA = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.7, 0.3, 0.5, 0, PathTracer::Shading::Color(1.f, 1.f, 1.f)));
-		auto emmisiveShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.7, 0.3, 0.5, 0, PathTracer::Shading::Color(0.8f, 0.7f, 1.0f)));
+		auto wallShaderA = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.0, 0.3, 1, 0.15, PathTracer::Shading::Color(0.5, 0.9, 0.9)));
+		auto wallShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.0, 0.3, 1., 0, PathTracer::Shading::Color(0.9, 0.9, 0.5)));
+		auto wallShaderC = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.0, 0.3, 1., 1., PathTracer::Shading::Color(0.9, 0.9, 0.9)));
+		auto redShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.0, 0.3, 1., 0.1, PathTracer::Shading::Color(0.9, 0.6, 0.8)));
+		auto greenShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.0, 0.3, 1., 0.05, PathTracer::Shading::Color(0.6, 0.9, 0.8)));
+		auto blueShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.0, 0.3, 1., 0, PathTracer::Shading::Color(0.6, 0.6, 0.9)));
+		auto emmisiveShaderA = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.0, 0.3, 1., 0, PathTracer::Shading::Color(1.f, 1.f, 1.f)));
+		auto emmisiveShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.0, 0.3, 1., 0, PathTracer::Shading::Color(0.8f, 0.7f, 1.0f)));
 
 		scene.components.clear();
 
@@ -84,11 +84,11 @@ void createDataBuffer()
 		
 		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(20, 20, 20).translate(100, 0, 0), emmisiveShaderB));
 		
-		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0), wallShaderB));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0), wallShaderC));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(-1.57), wallShaderC));
-		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(3.14), wallShaderB));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(3.14), wallShaderC));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(1.57), wallShaderA));
-		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), wallShaderA));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), wallShaderB));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(1.57), wallShaderC));
 		
 		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(0, 175, -200), emmisiveShaderA));

@@ -15,21 +15,24 @@ namespace PathTracer
 		struct Shading
 		{
 			float emission;
-			float specularity;
+
+			float translucency;
 			float density;
 
-			float reflectionProbability;
-			float refractionProbability;
+			float reflectance;
+			float roughness;
 
 			Color color;
 
 			__host__ __device__ Shading(
-				float emission, float specularity, float density, 
-				float reflectionProbability, float refractionProbability, 
+				float emission, 
+				float translucency, float density,
+				float reflectance, float roughness, 
 				Color color
 			) :
-				emission(emission), specularity(specularity), density(density), 
-				reflectionProbability(reflectionProbability), refractionProbability(refractionProbability), 
+				emission(emission), 
+				translucency(translucency), density(density),
+				reflectance(reflectance), roughness(roughness),
 				color(color)
 			{}
 		};

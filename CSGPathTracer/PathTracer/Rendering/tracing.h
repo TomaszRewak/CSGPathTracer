@@ -32,16 +32,11 @@ namespace PathTracer
 				if (closestIntersection.distance != INFINITY)
 				{
 					Shading::Shading shading = closestIntersection.component->shader.getShading(closestIntersection.position);
-					float randomNumber = curand_uniform(&curandState);
 
-					if (shading.emission > 0)
-					{
-						light = light + filter * shading.color * shading.emission;
-					}
-
+					light = light + filter * shading.color * shading.emission;
 					filter = filter * shading.color;
 
-					if (iteration >= maxRayDepth || randomNumber > shading.reflectionProbability + shading.refractionProbability)
+					if (iteration >= maxRayDepth)
 					{
 						Math::Vector normalVector = closestIntersection.normalVector.unitVector();
 						ray.direction = ray.direction - normalVector * 2 * (ray.direction.dotProduct(normalVector));
@@ -51,15 +46,33 @@ namespace PathTracer
 
 						return light;
 					}
-					else if (randomNumber < shading.reflectionProbability)
+					else if (curand_uniform(&curandState) < shading.translucency)
+					{
+						ray.begin = closestIntersection.position + ray.direction * rayEpsylon;
+					}
+					else if (curand_uniform(&curandState) < shading.reflectance)
 					{
 						Math::Vector normalVector = closestIntersection.normalVector.unitVector();
+
+						Math::Vector roughnessVector = Math::Vector(
+							curand_uniform(&curandState),
+							curand_uniform(&curandState),
+							curand_uniform(&curandState)
+						);
+
+						if (roughnessVector.dotProduct(normalVector) < 0)
+							roughnessVector = -roughnessVector;
+
 						ray.direction = ray.direction - normalVector * 2 * (ray.direction.dotProduct(normalVector));
+						ray.direction = (
+							ray.direction.unitVector() * (1.f - shading.roughness) +
+							roughnessVector.unitVector() * shading.roughness
+						).unitVector();
 						ray.begin = closestIntersection.position + ray.direction * rayEpsylon;
 					}
 					else
 					{
-						ray.begin = closestIntersection.position + ray.direction * rayEpsylon;
+						return light;
 					}
 				}
 				else return light;
