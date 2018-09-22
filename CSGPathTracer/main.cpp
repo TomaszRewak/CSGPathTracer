@@ -16,8 +16,8 @@
 #include "PathTracer/Shading/shader.h"
 #include "PathTracer/Rendering/camera.h"
 
-int width = 600;
-int height = 400;
+int width = 400;
+int height = 300;
 
 GLuint texture;
 GLuint pixelBuffer;

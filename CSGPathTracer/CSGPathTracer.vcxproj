@@ -193,20 +193,22 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="PathTracer\Operations\standard-operations.h" />
     <ClInclude Include="PathTracer\rendering.h" />
     <ClInclude Include="PathTracer\Rendering\camera.h" />
-    <ClInclude Include="PathTracer\Rendering\lightProbing.h" />
+    <ClInclude Include="PathTracer\tracing.h" />
+    <ClInclude Include="PathTracer\Tracing\light-probing.h" />
     <ClInclude Include="PathTracer\scene.h" />
     <ClInclude Include="PathTracer\Scene\component-configuration.h" />
     <ClInclude Include="PathTracer\Shading\color.h" />
     <ClInclude Include="Communication\component-type.h" />
     <ClInclude Include="PathTracer\Shading\shader.h" />
-    <ClInclude Include="PathTracer\Rendering\tracing.h" />
+    <ClInclude Include="PathTracer\Tracing\path-step.h" />
+    <ClInclude Include="PathTracer\Tracing\path-tracing.h" />
     <ClInclude Include="Scene\Components\component-base.h" />
     <ClInclude Include="Scene\Components\operation-component.h" />
     <ClInclude Include="Scene\scene.h" />
     <ClInclude Include="Scene\Components\shape-component.h" />
     <ClInclude Include="PathTracer\Scene\component.h" />
     <ClInclude Include="Communication\component.h" />
-    <ClInclude Include="PathTracer\Scene\intersection.h" />
+    <ClInclude Include="PathTracer\Scene\component-intersection.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

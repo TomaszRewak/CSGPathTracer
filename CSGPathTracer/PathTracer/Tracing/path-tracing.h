@@ -1,10 +1,10 @@
 #pragma once
 
-#include "lightProbing.h"
+#include "light-probing.h"
 
 namespace PathTracer
 {
-	namespace Rendering {
+	namespace Tracing {
 		__device__ Shading::Color trace(
 			Math::Ray& ray,
 			Component** shapeComponents, size_t shapeComponentsNumber,
@@ -19,11 +19,11 @@ namespace PathTracer
 
 			for (size_t iteration = 0; ; iteration++)
 			{
-				Intersection closestIntersection;
+				ComponentIntersection closestIntersection;
 
 				for (size_t componentNumber = 0; componentNumber < shapeComponentsNumber; componentNumber++)
 				{
-					Intersection intersection = shapeComponents[componentNumber]->intersect(ray, closestIntersection.distance);
+					ComponentIntersection intersection = shapeComponents[componentNumber]->intersect(ray, closestIntersection.distance);
 
 					if (intersection.distance < closestIntersection.distance)
 						closestIntersection = intersection;

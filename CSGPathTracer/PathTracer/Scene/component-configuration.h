@@ -3,7 +3,7 @@
 #include <curand.h>
 
 #include "../../Math/shapes.h"
-#include "intersection.h"
+#include "component-intersection.h"
 #include "../Shading/shader.h"
 
 namespace PathTracer 

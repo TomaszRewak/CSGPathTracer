@@ -12,8 +12,29 @@
 
 namespace PathTracer
 {
-	namespace Rendering
+	namespace Tracing
 	{
+		__device__ float lightRayVisibility(Math::Vector viewRay, Math::Vector lightRay, float roughness)
+		{
+			float r = roughness;
+			float xp = lightRay.dx;
+			float yp = lightRay.dy;
+
+			float dx = viewRay.dx;
+			float dy = viewRay.dy;
+
+			float a = dy;
+			float b = dx;
+			float c = 0;
+
+			float d = std::abs(a * xp + b * yp + c) / std::sqrt(a * a + b * b) / roughness;
+
+			if (d < 1)
+				return std::sqrt(1 - d * d);
+			else
+				return 0;
+		}
+
 		__device__ Shading::Color probeLightSources(
 			Math::Point& position,
 			Component** shapeComponents, size_t shapeComponentsNumber,
@@ -31,10 +52,10 @@ namespace PathTracer
 					Math::Ray lightRay = lightComponent->generateRay(curandState);
 					Math::Ray connectionRay = Math::Ray(position, lightRay.begin);
 
-					Intersection closestIntersection(1.1f);
+					ComponentIntersection closestIntersection(1.1f);
 					for (size_t componentNumber = 0; componentNumber < shapeComponentsNumber; componentNumber++)
 					{
-						Intersection intersection = shapeComponents[componentNumber]->intersect(connectionRay, closestIntersection.distance);
+						ComponentIntersection intersection = shapeComponents[componentNumber]->intersect(connectionRay, closestIntersection.distance);
 
 						if (intersection.distance != INFINITY)
 							closestIntersection = intersection;

@@ -4,6 +4,7 @@
 
 #include "PathTracer/rendering.h"
 #include "PathTracer/operations.h"
+#include "PathTracer/tracing.h"
 #include "Communication/component-mapping.h"
 
 namespace PathTracer
@@ -72,7 +73,7 @@ namespace PathTracer
 
 			Math::Ray ray = camera.getRay(x, y, imageWidth, imageHeight, randState);
 
-			Shading::Color light = Rendering::trace(
+			Shading::Color light = Tracing::trace(
 				ray,
 				shapeComponents, shapeComponentsNumber,
 				lightComponents, lightComponentsNumber,

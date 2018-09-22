@@ -23,7 +23,7 @@ namespace PathTracer
 			normalDirection(1.f)
 		{ }
 
-		__device__ Intersection intersect(Math::Ray ray, float maxDistance)
+		__device__ ComponentIntersection intersect(Math::Ray ray, float maxDistance)
 		{
 			const int maxIntersections = 2;
 
@@ -43,11 +43,11 @@ namespace PathTracer
 				if (validateIntersection(globalIntersection.position))
 				{
 					globalIntersection.normalVector = globalIntersection.normalVector * normalDirection;
-					return Intersection(globalIntersection, this);
+					return ComponentIntersection(globalIntersection, this);
 				}
 			}
 
-			return Intersection();
+			return ComponentIntersection();
 		}
 
 		__device__ bool validateIntersection(const Math::Point& point)
