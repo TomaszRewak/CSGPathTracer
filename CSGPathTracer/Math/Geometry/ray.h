@@ -9,6 +9,9 @@ namespace Math
 		Point begin;
 		Vector direction;
 
+		__host__ __device__ Ray()
+		{ }
+
 		__host__ __device__ Ray(Point& begin, Vector& direction) :
 			begin(begin), direction(direction)
 		{}

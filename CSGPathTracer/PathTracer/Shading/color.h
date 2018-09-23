@@ -42,12 +42,12 @@ namespace PathTracer
 			float g;
 			float b;
 
-			__device__ Filter(float r, float g, float b) :
-				r(fminf(1., r)), g(fminf(1., g)), b(fminf(1., b))
-			{ }
 			__device__ Filter() : Filter(1, 1, 1)
 			{ }
-			__device__ Filter(const Color& color) :
+			__device__ explicit Filter(float r, float g, float b) :
+				r(fminf(1., r)), g(fminf(1., g)), b(fminf(1., b))
+			{ }
+			__device__ explicit Filter(const Color& color) :
 				Filter(color.r, color.g, color.b)
 			{ }
 

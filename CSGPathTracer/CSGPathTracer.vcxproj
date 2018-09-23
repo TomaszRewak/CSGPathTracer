@@ -192,9 +192,10 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="PathTracer\Operations\shape-operation.h" />
     <ClInclude Include="PathTracer\Operations\standard-operations.h" />
     <ClInclude Include="PathTracer\rendering.h" />
-    <ClInclude Include="PathTracer\Rendering\camera.h" />
+    <ClInclude Include="PathTracer\Rendering\rendering.h" />
+    <ClInclude Include="PathTracer\Scene\camera.h" />
     <ClInclude Include="PathTracer\tracing.h" />
-    <ClInclude Include="PathTracer\Tracing\light-probing.h" />
+    <ClInclude Include="PathTracer\Rendering\light-probing.h" />
     <ClInclude Include="PathTracer\scene.h" />
     <ClInclude Include="PathTracer\Scene\component-configuration.h" />
     <ClInclude Include="PathTracer\Shading\color.h" />

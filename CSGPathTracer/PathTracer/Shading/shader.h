@@ -24,6 +24,12 @@ namespace PathTracer
 
 			Color color;
 
+			__host__ __device__ Shading() :
+				emission(0),
+				translucency(0), density(0),
+				reflectance(0), roughness(0)
+			{}
+
 			__host__ __device__ Shading(
 				float emission, 
 				float translucency, float density,

@@ -6,7 +6,7 @@
 
 namespace PathTracer
 {
-	namespace Rendering
+	namespace Scene
 	{
 		struct Camera
 		{

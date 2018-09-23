@@ -6,8 +6,16 @@ namespace PathTracer
 	{
 		struct PathStep
 		{
-			Shading::Shader shader;
+			Shading::Shading shading;
 			Math::Ray baseRay;
+
+			PathStep()
+			{ }
+
+			PathStep(const Shading::Shading& shading, const Math::Ray& baseRay) :
+				shading(shading),
+				baseRay(baseRay)
+			{ }
 		};
 	}
 }
