@@ -9,10 +9,10 @@ namespace PathTracer
 			Shading::Shading shading;
 			Math::Ray baseRay;
 
-			PathStep()
+			__device__ PathStep()
 			{ }
 
-			PathStep(const Shading::Shading& shading, const Math::Ray& baseRay) :
+			__device__ PathStep(const Shading::Shading& shading, const Math::Ray& baseRay) :
 				shading(shading),
 				baseRay(baseRay)
 			{ }

@@ -8,11 +8,10 @@ namespace PathTracer
 
 	struct ComponentIntersection : public Math::Intersection
 	{
-		Math::Intersection intersection;
 		const Component* component;
 
 		__device__ ComponentIntersection() :
-			intersection(),
+			Math::Intersection(),
 			component(NULL)
 		{ }
 

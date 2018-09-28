@@ -4,7 +4,7 @@
 
 #include "PathTracer/rendering.h"
 #include "PathTracer/operations.h"
-#include "PathTracer/tracing.h"
+#include "PathTracer/rendering.h"
 #include "Communication/component-mapping.h"
 
 namespace PathTracer
@@ -47,7 +47,7 @@ namespace PathTracer
 	__global__ void kernel(
 		float4* image,
 		const size_t imageWidth, const size_t imageHeight,
-		Rendering::Camera camera,
+		Scene::Camera camera,
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber, unsigned long long seed)
 	{
@@ -73,7 +73,7 @@ namespace PathTracer
 
 			Math::Ray ray = camera.getRay(x, y, imageWidth, imageHeight, randState);
 
-			Shading::Color light = Tracing::trace(
+			Shading::Color light = Rendering::shootRay<4, 2>(
 				ray,
 				shapeComponents, shapeComponentsNumber,
 				lightComponents, lightComponentsNumber,
@@ -93,11 +93,11 @@ namespace PathTracer
 	void renderRect(
 		float4* image,
 		const size_t imageWidth, const size_t imageHeight,
-		Rendering::Camera camera,
+		Scene::Camera camera,
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber)
 	{
-		dim3 block(16, 16, 1);
+		dim3 block(8, 8, 1);
 		dim3 grid(imageWidth / block.x + 1, imageHeight / block.y + 1, 1);
 
 		std::uniform_int_distribution<unsigned long long> distribution(0, std::numeric_limits<unsigned long long>::max());

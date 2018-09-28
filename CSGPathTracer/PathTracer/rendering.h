@@ -1,3 +1,4 @@
 #pragma once
 
-#include "Rendering/camera.h"
+#include "Rendering/light-probing.h"
+#include "Rendering/rendering.h"

@@ -8,25 +8,25 @@ namespace PathTracer
 	{
 		namespace Union
 		{
-			__device__ bool validate(const Math::Point& point, const Component*& rootComponent, const Component*& previousComponent, const Component*& currentComponent, bool stackedResult)
+			__device__ void validate(const Math::Point& point, ComponentIterator<Component>& iterator)
 			{
-				return Helpers::validateTwoOperandOperation<true, true, true, false, false>(point, rootComponent, previousComponent, currentComponent, stackedResult);
+				return Helpers::validateTwoOperandOperation<true, true, true, false, false>(point, iterator);
 			}
 		}
 
 		namespace Difference
 		{
-			__device__ bool validate(const Math::Point& point, const Component*& rootComponent, const Component*& previousComponent, const Component*& currentComponent, bool stackedResult)
+			__device__ void validate(const Math::Point& point, ComponentIterator<Component>& iterator)
 			{
-				return Helpers::validateTwoOperandOperation<false, true, false, false, true>(point, rootComponent, previousComponent, currentComponent, stackedResult);
+				return Helpers::validateTwoOperandOperation<false, true, false, false, true>(point, iterator);
 			}
 		}
 
 		namespace Intersection
 		{
-			__device__ bool validate(const Math::Point& point, const Component*& rootComponent, const Component*& previousComponent, const Component*& currentComponent, bool stackedResult)
+			__device__ void validate(const Math::Point& point, ComponentIterator<Component>& iterator)
 			{
-				return Helpers::validateTwoOperandOperation<false, false, false, false, false>(point, rootComponent, previousComponent, currentComponent, stackedResult);
+				return Helpers::validateTwoOperandOperation<false, false, false, false, false>(point, iterator);
 			}
 		}
 	}

@@ -27,20 +27,20 @@ namespace PathTracer
 						closestIntersection = intersection;
 				}
 
-				if (closestIntersection.distance == INFINITY)
+				if (closestIntersection.component == NULL)
 					return depth;
 
 				PathStep& step = steps[depth];
-				step.shader = closestIntersection.component->shader.getShading(closestIntersection.position);
+				step.shading = closestIntersection.component->shader.getShading(closestIntersection.position);
 
 				Math::Vector normalVector = closestIntersection.normalVector.unitVector();
 
-				if (curand_uniform(&curandState) < shading.translucency)
+				if (curand_uniform(&curandState) < step.shading.translucency)
 				{
 					step.baseRay.direction = ray.direction;
 					normalVector = -normalVector;
 				}
-				else if (curand_uniform(&curandState) < shading.reflectance)
+				else if (curand_uniform(&curandState) < step.shading.reflectance)
 				{
 					step.baseRay.direction = ray.direction - normalVector * 2 * (ray.direction.dotProduct(normalVector));
 				}
@@ -48,17 +48,17 @@ namespace PathTracer
 					return depth;
 
 				Math::Vector roughnessVector = Math::Vector(
-					curand_uniform(&curandState),
-					curand_uniform(&curandState),
-					curand_uniform(&curandState)
+					curand_uniform(&curandState) - 0.5,
+					curand_uniform(&curandState) - 0.5,
+					curand_uniform(&curandState) - 0.5
 				);
 
 				if (roughnessVector.dotProduct(normalVector) < 0)
 					roughnessVector = -roughnessVector;
 
 				ray.direction = (
-					step.baseRay.direction.unitVector() * (1.f - shading.roughness) +
-					roughnessVector.unitVector() * shading.roughness
+					step.baseRay.direction.unitVector() * (1.f - step.shading.roughness) +
+					roughnessVector.unitVector() * step.shading.roughness
 					).unitVector();
 
 				step.baseRay.begin = closestIntersection.position + step.baseRay.direction * rayEpsylon;

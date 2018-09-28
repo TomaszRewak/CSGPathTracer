@@ -13,8 +13,8 @@
 
 #include "kernel.h"
 #include "Scene/scene.h"
-#include "PathTracer/Shading/shader.h"
-#include "PathTracer/Rendering/camera.h"
+#include "PathTracer/shading.h"
+#include "PathTracer/scene.h"
 
 int width = 400;
 int height = 300;
@@ -23,7 +23,7 @@ GLuint texture;
 GLuint pixelBuffer;
 cudaGraphicsResource *cudaBuffer;
 
-PathTracer::Rendering::Camera camera = PathTracer::Rendering::Camera(
+PathTracer::Scene::Camera camera = PathTracer::Scene::Camera(
 	Math::AffineTransformation().translate(0, 0, -600),
 	5.f
 );
@@ -43,6 +43,7 @@ void createDataBuffer()
 		auto redShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.0, 0.3, 1., 0.1, PathTracer::Shading::Color(0.9, 0.6, 0.8)));
 		auto greenShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.0, 0.3, 1., 0.05, PathTracer::Shading::Color(0.6, 0.9, 0.8)));
 		auto blueShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.0, 0.3, 1., 0, PathTracer::Shading::Color(0.6, 0.6, 0.9)));
+		auto transparentShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 1, 0, 1., 0, PathTracer::Shading::Color(0.6, 0.6, 0.9)));
 		auto emmisiveShaderA = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.0, 0.3, 1., 0, PathTracer::Shading::Color(1.f, 1.f, 1.f)));
 		auto emmisiveShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.0, 0.3, 1., 0, PathTracer::Shading::Color(0.8f, 0.7f, 1.0f)));
 
@@ -84,14 +85,16 @@ void createDataBuffer()
 		
 		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(20, 20, 20).translate(100, 0, 0), emmisiveShaderB));
 		
-		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0), wallShaderC));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -100, 0), wallShaderB));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(-1.57), wallShaderC));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(3.14), wallShaderC));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(1.57), wallShaderA));
-		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), wallShaderB));
+		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), wallShaderC));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(1.57), wallShaderC));
 		
 		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(0, 175, -200), emmisiveShaderA));
+
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(40, 40, 40).translate(-50, -50, -200), transparentShader));
 
 		size_t newShapesNumber = scene.zipSize();
 		size_t size = newShapesNumber * sizeof(Communication::Component);

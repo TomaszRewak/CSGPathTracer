@@ -8,13 +8,13 @@ namespace PathTracer
 	{
 		namespace Shape
 		{
-			__device__ bool validate(const Math::Point& point, const Component*& rootComponent, const Component*& previousComponent, const Component*& currentComponent, bool stackedResult)
+			__device__ void validate(const Math::Point& point, ComponentIterator<Component>& iterator)
 			{
-				bool result = currentComponent->configuration.localShapeValidationFunction(
-					currentComponent->globalTransformation.inverse(point)
+				bool result = iterator.currentComponent->configuration.localShapeValidationFunction(
+					iterator.currentComponent->globalTransformation.inverse(point)
 				);
 
-				return Helpers::goUp<false>(currentComponent, previousComponent, result);
+				return iterator.goUp(result);
 			}
 		}
 	}

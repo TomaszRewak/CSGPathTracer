@@ -6,9 +6,9 @@
 
 namespace Math
 {
-	namespace Sphere
+	struct Sphere
 	{
-		__device__ Intersection* intersect(Intersection* intersections, const Ray& ray, float maxDistance)
+		__device__ static Intersection* intersect(Intersection* intersections, const Ray& ray, float maxDistance)
 		{
 			float
 				a = ray.direction.dx * ray.direction.dx + ray.direction.dy * ray.direction.dy + ray.direction.dz * ray.direction.dz,
@@ -53,12 +53,12 @@ namespace Math
 			return intersections;
 		}
 
-		__device__ bool validateIntersection(const Point& point)
+		__device__ static bool validateIntersection(const Point& point)
 		{
 			return point.x * point.x + point.y * point.y + point.z * point.z <= 1.0f;
 		}
 
-		__device__ Ray randomSurfaceRay(curandState& curandState)
+		__device__ static Ray randomSurfaceRay(curandState& curandState)
 		{
 			float t = 2 * 3.1415 * curand_uniform(&curandState);
 			float p = acosf(1 - 2 * curand_uniform(&curandState));
@@ -72,5 +72,5 @@ namespace Math
 				Vector(x, y, z)
 			);
 		}
-	}
+	};
 }

@@ -6,9 +6,9 @@
 
 namespace Math
 {
-	namespace Plane
+	struct Plane
 	{
-		__device__ Intersection* intersect(Intersection* intersections, const Ray& ray, float maxDistance)
+		__device__ static Intersection* intersect(Intersection* intersections, const Ray& ray, float maxDistance)
 		{
 			float d = -ray.begin.y / ray.direction.dy;
 
@@ -22,12 +22,12 @@ namespace Math
 			return intersections;
 		}
 
-		__device__ bool validateIntersection(const Point& point)
+		__device__ static bool validateIntersection(const Point& point)
 		{
 			return point.y <= 0.0f;
 		}
 
-		__device__ Ray randomSurfaceRay(curandState& randomNumberGenerator)
+		__device__ static Ray randomSurfaceRay(curandState& randomNumberGenerator)
 		{
 			float x = 1 - 2 * curand_uniform(&randomNumberGenerator);
 			float y = 0;
@@ -39,5 +39,5 @@ namespace Math
 				Vector(0, 1, 0)
 			);
 		}
-	}
+	};
 }

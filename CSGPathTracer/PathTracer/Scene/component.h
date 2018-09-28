@@ -6,7 +6,7 @@ namespace PathTracer
 {
 	struct Component
 	{
-		ComponentConfiguration configuration;
+		ComponentConfiguration<Component> configuration;
 
 		Math::TwoWayAffineTransformation globalTransformation;
 
@@ -31,8 +31,8 @@ namespace PathTracer
 
 			Math::Intersection intersections[maxIntersections];
 			Math::Intersection* intersectionsEnd = configuration.localIntersectionFunction(
-				intersections, 
-				ray, 
+				intersections,
+				ray,
 				maxDistance
 			);
 
@@ -52,24 +52,14 @@ namespace PathTracer
 
 		__device__ bool validateIntersection(const Math::Point& point)
 		{
-			bool stackedResult = true;
+			ComponentIterator<Component> iterator(this->parent, this);
 
-			const Component* rootComponent = this;
-			const Component* previousComponent = this;
-			const Component* currentComponent = this->parent;
-
-			while (currentComponent)
+			while (iterator.currentComponent)
 			{
-				stackedResult = currentComponent->configuration.localValidationFunction(
-					point,
-					rootComponent,
-					previousComponent,
-					currentComponent,
-					stackedResult
-				);
+				iterator.currentComponent->configuration.localValidationFunction(point, iterator);
 			}
 
-			return stackedResult;
+			return iterator.stackedResult;
 		}
 
 		__device__ Math::Ray generateRay(curandState& state)

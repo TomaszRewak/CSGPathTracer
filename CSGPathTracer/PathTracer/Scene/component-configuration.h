@@ -4,15 +4,17 @@
 
 #include "../../Math/shapes.h"
 #include "component-intersection.h"
+#include "component-iterator.h"
 #include "../Shading/shader.h"
 
 namespace PathTracer 
 {
+	template<class Component>
 	struct ComponentConfiguration
 	{
 		using LocalIntersectionFunction = Math::Intersection*(*)(Math::Intersection*, const Math::Ray& ray, float maxDistance);
 		using LocalShapeValidationFunction = bool(*)(const Math::Point& point);
-		using LocalValidationFunction = bool(*)(const Math::Point& point, const Component*& rootComponent, const Component*& previousComponent, const Component*& currentComponent, bool stackedResult);
+		using LocalValidationFunction = void(*)(const Math::Point& point, ComponentIterator<Component>& iterator);
 		using LocalRandomSurfaceRayFunction = Math::Ray(*)(curandState&);
 
 		LocalIntersectionFunction localIntersectionFunction;

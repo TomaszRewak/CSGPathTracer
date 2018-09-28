@@ -13,25 +13,14 @@
 
 namespace PathTracer
 {
-	namespace Tracing
+	namespace Rendering
 	{
 		__device__ float lightRayVisibilityFactor(
-			Math::Vector viewRay,
-			Math::Vector lightRay,
+			const Math::Vector& viewRay,
+			const Math::Vector& lightRay,
 			float roughness)
 		{
-			float r = roughness;
-			float xp = lightRay.dx;
-			float yp = lightRay.dy;
-
-			float dx = viewRay.dx;
-			float dy = viewRay.dy;
-
-			float a = dy;
-			float b = dx;
-			float c = 0;
-
-			float d = std::abs(a * xp + b * yp + c) / std::sqrt(a * a + b * b) / roughness;
+			float d = (lightRay.unitVector() * (1 - roughness)).crossProduct(viewRay.unitVector()).norm() / roughness;
 
 			if (d < 1)
 				return std::sqrt(1 - d * d);
@@ -42,8 +31,7 @@ namespace PathTracer
 		__device__ bool lightRayVisibility(
 			Component** shapeComponents, size_t shapeComponentsNumber,
 			Math::Point viewPoint,
-			Math::Point lightPoint,
-			float roughness)
+			Math::Point lightPoint)
 		{
 			Math::Ray connectionRay = Math::Ray(viewPoint, lightPoint);
 
@@ -88,19 +76,24 @@ namespace PathTracer
 				{
 					const Tracing::PathStep& lightRayStep = lightRaySteps[lightRayStepIndex];
 
-					float visibility = 0;
+					bool visible = lightRayVisibility(
+						shapeComponents, shapeComponentsNumber,
+						viewRayStep.baseRay.begin,
+						lightRayStep.baseRay.begin
+					);
 
-					if (lightRayVisibility())
+					if (visible)
 					{
-						visibility =
-							lightRayVisibilityFactor(viewRayStep.baseRay, lightRayStep.baseRay, viewRayStep.shading.roughness) *
-							lightRayVisibilityFactor(viewRayStep.baseRay, lightRayStep.baseRay, viewRayStep.shading.roughness);
+						float visibilityFactor =
+							lightRayVisibilityFactor(viewRayStep.baseRay.direction, lightRayStep.baseRay.direction, viewRayStep.shading.roughness) *
+							lightRayVisibilityFactor(viewRayStep.baseRay.direction, lightRayStep.baseRay.direction, viewRayStep.shading.roughness);
+
+						illumination = illumination + lightRayStepsIllumination[lightRayStepIndex] * visibilityFactor;
 					}
 
-					illumination = illumination + lightRayStepsIllumination[lightRayStepIndex] * visibility;
 				}
 
-				illumination = Shading::Filter(viewRayStep.shading.color) * illumination;
+				illumination = Shading::Filter(viewRayStep.shading.color) * illumination + viewRayStep.shading.color * viewRayStep.shading.emission;
 			}
 
 			return illumination;

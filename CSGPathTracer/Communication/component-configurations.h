@@ -8,9 +8,9 @@ namespace Communication
 	namespace Configurations
 	{
 		__device__
-			PathTracer::ComponentConfiguration sphereConfiguration()
+			PathTracer::ComponentConfiguration<PathTracer::Component> sphereConfiguration()
 		{
-			return PathTracer::ComponentConfiguration(
+			return PathTracer::ComponentConfiguration<PathTracer::Component>(
 				Math::Sphere::intersect,
 				Math::Sphere::validateIntersection,
 				PathTracer::Operations::Shape::validate,
@@ -20,9 +20,9 @@ namespace Communication
 		}
 
 		__device__
-			PathTracer::ComponentConfiguration cylinderConfiguration()
+			PathTracer::ComponentConfiguration<PathTracer::Component> cylinderConfiguration()
 		{
-			return PathTracer::ComponentConfiguration(
+			return PathTracer::ComponentConfiguration<PathTracer::Component>(
 				Math::Cylinder::intersect,
 				Math::Cylinder::validateIntersection,
 				PathTracer::Operations::Shape::validate,
@@ -32,9 +32,9 @@ namespace Communication
 		}
 
 		__device__
-			PathTracer::ComponentConfiguration planeConfiguration()
+			PathTracer::ComponentConfiguration<PathTracer::Component> planeConfiguration()
 		{
-			return PathTracer::ComponentConfiguration(
+			return PathTracer::ComponentConfiguration<PathTracer::Component>(
 				Math::Plane::intersect,
 				Math::Plane::validateIntersection,
 				PathTracer::Operations::Shape::validate,
@@ -44,9 +44,9 @@ namespace Communication
 		}
 
 		__device__
-			PathTracer::ComponentConfiguration unionConfiguration()
+			PathTracer::ComponentConfiguration<PathTracer::Component> unionConfiguration()
 		{
-			return PathTracer::ComponentConfiguration(
+			return PathTracer::ComponentConfiguration<PathTracer::Component>(
 				NULL,
 				NULL,
 				PathTracer::Operations::Union::validate,
@@ -56,9 +56,9 @@ namespace Communication
 		}
 
 		__device__
-			PathTracer::ComponentConfiguration differenceConfiguration()
+			PathTracer::ComponentConfiguration<PathTracer::Component> differenceConfiguration()
 		{
-			return PathTracer::ComponentConfiguration(
+			return PathTracer::ComponentConfiguration<PathTracer::Component>(
 				NULL,
 				NULL,
 				PathTracer::Operations::Difference::validate,
@@ -68,9 +68,9 @@ namespace Communication
 		}
 
 		__device__
-			PathTracer::ComponentConfiguration intersectionConfiguration()
+			PathTracer::ComponentConfiguration<PathTracer::Component> intersectionConfiguration()
 		{
-			return PathTracer::ComponentConfiguration(
+			return PathTracer::ComponentConfiguration<PathTracer::Component>(
 				NULL,
 				NULL,
 				PathTracer::Operations::Intersection::validate,
