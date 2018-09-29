@@ -13,12 +13,12 @@ namespace PathTracer
 			Component** shapeComponents, size_t shapeComponentsNumber,
 			curandState& curandState)
 		{
+			ray.direction = ray.direction.unitVector();
 			const float rayEpsylon = 0.001;
 
 			for (size_t depth = 0; depth < MAX_DEPTH; depth++)
 			{
 				ComponentIntersection closestIntersection;
-
 				for (size_t componentNumber = 0; componentNumber < shapeComponentsNumber; componentNumber++)
 				{
 					ComponentIntersection intersection = shapeComponents[componentNumber]->intersect(ray, closestIntersection.distance);
@@ -37,8 +37,28 @@ namespace PathTracer
 
 				if (curand_uniform(&curandState) < step.shading.translucency)
 				{
-					step.baseRay.direction = ray.direction;
-					normalVector = -normalVector;
+					float densityFactor = 1 / step.shading.density;
+
+					float dotProduct = ray.direction.dotProduct(normalVector);
+
+					if (dotProduct < 0) 
+					{
+						dotProduct = -dotProduct;
+					}
+					else {
+						normalVector = -normalVector;
+						densityFactor = 1 / densityFactor;
+					}
+
+					double sqrtBody = 1 - densityFactor * densityFactor * (1 - dotProduct * dotProduct);
+					if (sqrtBody >= 0)
+					{
+						step.baseRay.direction = normalVector * densityFactor * dotProduct + ray.direction * densityFactor - normalVector * sqrt(sqrtBody);
+					}
+					else
+					{
+						step.baseRay.direction = ray.direction - normalVector * 2 * dotProduct;
+					}
 				}
 				else if (curand_uniform(&curandState) < step.shading.reflectance)
 				{

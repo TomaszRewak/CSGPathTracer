@@ -18,7 +18,11 @@ namespace PathTracer
 			Shading::Color color;
 
 			Tracing::PathStep viewRaySteps[MaxViewDepth];
-			size_t viewDepth = Tracing::trace<MaxViewDepth>(viewRaySteps, ray, shapeComponents, shapeComponentsNumber, curandState);
+			viewRaySteps[0] = Tracing::PathStep(
+				Shading::Shading(0, 0, 0, 0, 0.1, Shading::Color(1, 1, 1)),
+				ray
+			);
+			size_t viewDepth = 1 + Tracing::trace<MaxViewDepth - 1>(viewRaySteps + 1, ray, shapeComponents, shapeComponentsNumber, curandState);
 
 			for (size_t lightComponentIndex = 0; lightComponentIndex < lightComponentsNumber; lightComponentIndex++)
 			{
