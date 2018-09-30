@@ -8,7 +8,7 @@ namespace Math
 {
 	struct Sphere
 	{
-		__device__ static Intersection* intersect(Intersection* intersections, const Ray& ray, float maxDistance)
+		__device__ static float intersect(const Ray& ray, float minDistance)
 		{
 			float
 				a = ray.direction.dx * ray.direction.dx + ray.direction.dy * ray.direction.dy + ray.direction.dz * ray.direction.dz,
@@ -21,36 +21,16 @@ namespace Math
 			{
 				float deltaSqrt = sqrtf(delta);
 
-				float d1;
-				float d2;
+				float d1 = (-b - deltaSqrt) / (2 * a);
+				float d2 = (-b + deltaSqrt) / (2 * a);
 
-				if (a > 0)
-				{
-					d1 = (-b - deltaSqrt) / (2 * a);
-					d2 = (-b + deltaSqrt) / (2 * a);
-				}
-				else
-				{
-					d1 = (-b + deltaSqrt) / (2 * a);
-					d2 = (-b - deltaSqrt) / (2 * a);
-				}
-
-				if (0 < d1 && d1 < maxDistance)
-				{
-					Point point = ray.begin + ray.direction * d1;
-					*intersections = Intersection(point, point - Point(0, 0, 0), d1);
-					intersections++;
-				}
-
-				if (0 < d2 && d2 < maxDistance)
-				{
-					Point point = ray.begin + ray.direction * d2;
-					*intersections = Intersection(point, point - Point(0, 0, 0), d2);
-					intersections++;
-				}
+				if (d1 > minDistance)
+					return d1;
+				if (d2 > minDistance)
+					return d2;
 			}
 
-			return intersections;
+			return INFINITY;
 		}
 
 		__device__ static bool validateIntersection(const Point& point)
@@ -58,7 +38,12 @@ namespace Math
 			return point.x * point.x + point.y * point.y + point.z * point.z <= 1.0f;
 		}
 
-		__device__ static Ray randomSurfaceRay(curandState& curandState)
+		__device__ static Vector getNormalVector(const Point& point)
+		{
+			return Vector(point.x, point.y, point.z);
+		}
+
+		__device__ static Ray generateRandomSurfaceRay(curandState& curandState)
 		{
 			float t = 2 * 3.1415 * curand_uniform(&curandState);
 			float p = acosf(1 - 2 * curand_uniform(&curandState));

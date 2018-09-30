@@ -14,7 +14,7 @@ namespace PathTracer
 	void renderRect(
 		float4* image, 
 		const size_t imageWidth, const size_t imageHeight, 
-		Scene::Camera camera,
+		Camera camera,
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber);
 }

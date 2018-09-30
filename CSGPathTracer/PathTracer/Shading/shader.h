@@ -15,10 +15,7 @@ namespace PathTracer
 		struct Shading
 		{
 			float emission;
-
-			float translucency;
 			float density;
-
 			float reflectance;
 			float roughness;
 
@@ -26,19 +23,22 @@ namespace PathTracer
 
 			__host__ __device__ Shading() :
 				emission(0),
-				translucency(0), density(0),
-				reflectance(0), roughness(0)
+				density(0),
+				reflectance(0), 
+				roughness(0)
 			{}
 
 			__host__ __device__ Shading(
 				float emission, 
-				float translucency, float density,
-				float reflectance, float roughness, 
-				Color color
+				float density,
+				float reflectance, 
+				float roughness, 
+				const Color &color
 			) :
 				emission(emission), 
-				translucency(translucency), density(density),
-				reflectance(reflectance), roughness(roughness),
+				density(density),
+				reflectance(reflectance), 
+				roughness(roughness),
 				color(color)
 			{}
 		};
@@ -50,14 +50,18 @@ namespace PathTracer
 			Shading shading;
 
 		public:
+			float photons;
+
 			__host__ __device__ Shader() :
 				shaderType(ShaderType::None),
-				shading(0, 0, 0, 0, 0, Color())
+				shading(0, 0, 0, 0, Color()),
+				photons(0)
 			{ }
 
-			__host__ Shader(ShaderType shaderType, Shading shading) :
+			__host__ Shader(ShaderType shaderType, Shading shading, float photons = 0) :
 				shaderType(shaderType),
-				shading(shading)
+				shading(shading),
+				photons(photons)
 			{ }
 
 			__host__ __device__ Shader(const Shader& shader) = default;

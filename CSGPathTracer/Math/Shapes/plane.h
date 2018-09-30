@@ -8,18 +8,14 @@ namespace Math
 {
 	struct Plane
 	{
-		__device__ static Intersection* intersect(Intersection* intersections, const Ray& ray, float maxDistance)
+		__device__ static float intersect(const Ray& ray, float minDistance)
 		{
 			float d = -ray.begin.y / ray.direction.dy;
 
-			if (0 < d && d < maxDistance)
-			{
-				Point point = ray.begin + ray.direction * d;
-				*intersections = Intersection(point, Vector(0., 1., 0.), d);
-				intersections++;
-			}
-
-			return intersections;
+			if (d > minDistance)
+				return d;
+			else
+				return INFINITY;
 		}
 
 		__device__ static bool validateIntersection(const Point& point)
@@ -27,7 +23,12 @@ namespace Math
 			return point.y <= 0.0f;
 		}
 
-		__device__ static Ray randomSurfaceRay(curandState& randomNumberGenerator)
+		__device__ static Vector getNormalVector(const Point& point)
+		{
+			return Vector(0.f, 1.f, 0.f);
+		}
+
+		__device__ static Ray generateRandomSurfaceRay(curandState& randomNumberGenerator)
 		{
 			float x = 1 - 2 * curand_uniform(&randomNumberGenerator);
 			float y = 0;

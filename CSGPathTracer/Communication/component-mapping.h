@@ -1,75 +1,55 @@
 #pragma once
 
-#include "component-configurations.h"
-
 namespace Communication
 {
 	__device__ void mapComponents(
 		Communication::Component* zippedComponents, size_t componentsNumber,
 		PathTracer::Component*& components,
-		PathTracer::Component**& shapeComponents, size_t& shapeComponentsNumber,
-		PathTracer::Component**& lightComponents, size_t& lightComponentsNumber)
+		PathTracer::Component**& rootComponents, size_t& rootComponentsNumber)
 	{
-		shapeComponentsNumber = 0;
-		lightComponentsNumber = 0;
+		rootComponentsNumber = 0;
 
 		components = new PathTracer::Component[componentsNumber];
-		shapeComponents = new PathTracer::Component*[componentsNumber];
-		lightComponents = new PathTracer::Component*[componentsNumber];
+		rootComponents = new PathTracer::Component*[componentsNumber];
 
 		for (size_t i = 0; i < componentsNumber; i++)
 		{
 			PathTracer::Component& component = components[i];
-			Communication::Component& shape = zippedComponents[i];
+			Communication::Component& zippedComponent = zippedComponents[i];
 
-			component.globalTransformation = Math::TwoWayAffineTransformation(shape.globalTransformation);
-			component.shader = shape.shader;
+			component.globalTransformation = Math::TwoWayAffineTransformation(zippedComponent.globalTransformation);
+			component.shader = zippedComponent.shader;
+			component.type = zippedComponent.type;
 
-			switch (shape.type)
+			if (int(component.type) & int(PathTracer::ComponentType::Operation))
 			{
-			case Communication::ComponentType::Sphere:
-				component.configuration = Configurations::sphereConfiguration();
-				break;
-			case Communication::ComponentType::Cylinder:
-				component.configuration = Configurations::cylinderConfiguration();
-				break;
-			case Communication::ComponentType::Plane:
-				component.configuration = Configurations::planeConfiguration();
-				break;
-			case Communication::ComponentType::Union:
-				component.configuration = Configurations::unionConfiguration();
-				component.leftOperand = &components[i + shape.leftOperandOffset];
-				component.rightOperand = &components[i + shape.rightOperandOffset];
-				break;
-			case Communication::ComponentType::Difference:
-				component.configuration = Configurations::differenceConfiguration();
-				component.leftOperand = &components[i + shape.leftOperandOffset];
-				component.rightOperand = &components[i + shape.rightOperandOffset];
-				break;
-			case Communication::ComponentType::Intersection:
-				component.configuration = Configurations::intersectionConfiguration();
-				component.leftOperand = &components[i + shape.leftOperandOffset];
-				component.rightOperand = &components[i + shape.rightOperandOffset];
-				break;
-			}
-
-			if (component.leftOperand)
-			{
+				component.leftOperand = &components[i + zippedComponent.leftOperandOffset];
 				component.leftOperand->parent = &component;
-				component.leftOperand->normalDirection = component.normalDirection * component.configuration.leftChildNormalDirection;
-			}
+				component.leftOperand->normalDirection = component.normalDirection;
 
-			if (component.rightOperand)
-			{
+				if (component.type == PathTracer::ComponentType::Intersection)
+					component.leftOperand->normalDirection *= -1.;
+
+				component.rightOperand = &components[i + zippedComponent.rightOperandOffset];
 				component.rightOperand->parent = &component;
-				component.rightOperand->normalDirection = component.normalDirection * component.configuration.rightChildNormalDirection;
+				component.rightOperand->normalDirection = component.normalDirection;
+
+				if (component.type == PathTracer::ComponentType::Intersection || component.type == PathTracer::ComponentType::Difference)
+					component.rightOperand->normalDirection *= -1.;
 			}
 
-			if (component.configuration.localIntersectionFunction)
-				shapeComponents[shapeComponentsNumber++] = &component;
+			if (component.parent == NULL)
+				rootComponents[rootComponentsNumber++] = &component;
+		}
 
-			if (component.shader.isLightSource())
-				lightComponents[lightComponentsNumber++] = &component;
+		for (size_t i = 0; i < componentsNumber; i++)
+		{
+			PathTracer::Component& component = components[componentsNumber - i - 1];
+
+			component.totalPhotons += component.shader.photons;
+
+			if (component.parent)
+				component.parent->totalPhotons += component.totalPhotons;
 		}
 	}
 }

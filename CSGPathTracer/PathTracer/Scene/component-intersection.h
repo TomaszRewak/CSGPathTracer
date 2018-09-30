@@ -6,23 +6,24 @@ namespace PathTracer
 {
 	struct Component;
 
-	struct ComponentIntersection : public Math::Intersection
+	struct ComponentIntersection
 	{
 		const Component* component;
+		float distance;
 
-		__device__ ComponentIntersection() :
-			Math::Intersection(),
-			component(NULL)
+		__device__ ComponentIntersection():
+			component(NULL),
+			distance(INFINITY)
 		{ }
 
-		__device__ explicit ComponentIntersection(float maxDistance) :
-			Math::Intersection(maxDistance),
-			component(NULL)
+		__device__ ComponentIntersection(float maxDisntace) :
+			component(NULL),
+			distance(maxDisntace)
 		{ }
 
-		__device__ explicit ComponentIntersection(const Math::Intersection& intersection, const Component* component) :
-			Math::Intersection(intersection),
-			component(component)
+		__device__ ComponentIntersection(Component* component, float maxDisntace) :
+			component(component),
+			distance(maxDisntace)
 		{ }
 	};
 }

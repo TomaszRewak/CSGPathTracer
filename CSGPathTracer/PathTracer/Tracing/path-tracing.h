@@ -9,80 +9,75 @@ namespace PathTracer
 		template<size_t MAX_DEPTH>
 		__device__ size_t trace(
 			PathStep* steps,
-			Math::Ray ray,
-			Component** shapeComponents, size_t shapeComponentsNumber,
+			const Scene& scene,
 			curandState& curandState)
 		{
-			ray.direction = ray.direction.unitVector();
-			const float rayEpsylon = 0.001;
+			const float rayEpsylon = 0.01;
 
-			for (size_t depth = 0; depth < MAX_DEPTH; depth++)
+			steps[0].ray.begin = steps[0].ray.point(rayEpsylon);
+			Math::Ray ray = steps[0].ray;
+
+			for (size_t depth = 1; depth < MAX_DEPTH; depth++)
 			{
-				ComponentIntersection closestIntersection;
-				for (size_t componentNumber = 0; componentNumber < shapeComponentsNumber; componentNumber++)
+				ComponentIntersection closestIntersection = scene.intersect(ray);
+
+				if (closestIntersection.component == NULL) // SYNC
 				{
-					ComponentIntersection intersection = shapeComponents[componentNumber]->intersect(ray, closestIntersection.distance);
-
-					if (intersection.distance < closestIntersection.distance)
-						closestIntersection = intersection;
-				}
-
-				if (closestIntersection.component == NULL)
-					return depth;
-
-				PathStep& step = steps[depth];
-				step.shading = closestIntersection.component->shader.getShading(closestIntersection.position);
-
-				Math::Vector normalVector = closestIntersection.normalVector.unitVector();
-
-				if (curand_uniform(&curandState) < step.shading.translucency)
-				{
-					float densityFactor = 1 / step.shading.density;
-
-					float dotProduct = ray.direction.dotProduct(normalVector);
-
-					if (dotProduct < 0) 
-					{
-						dotProduct = -dotProduct;
-					}
-					else {
-						normalVector = -normalVector;
-						densityFactor = 1 / densityFactor;
-					}
-
-					double sqrtBody = 1 - densityFactor * densityFactor * (1 - dotProduct * dotProduct);
-					if (sqrtBody >= 0)
-					{
-						step.baseRay.direction = normalVector * densityFactor * dotProduct + ray.direction * densityFactor - normalVector * sqrt(sqrtBody);
-					}
+					if (false)
+						continue;
 					else
-					{
-						step.baseRay.direction = ray.direction - normalVector * 2 * dotProduct;
-					}
+						return depth;
 				}
-				else if (curand_uniform(&curandState) < step.shading.reflectance)
-				{
-					step.baseRay.direction = ray.direction - normalVector * 2 * (ray.direction.dotProduct(normalVector));
-				}
-				else
-					return depth;
+
+				Math::Point intersectionPoint = ray.point(closestIntersection.distance);
+				Math::Vector direction = ray.direction.unitVector();
+				Math::Vector normalVector = closestIntersection.component->normalVector(intersectionPoint).unitVector();
+				Shading::Shading shading = closestIntersection.component->shader.getShading(intersectionPoint);
+
+				Math::Vector baseDirection = direction;
+
+				float densityFactor = 1 / shading.density;
+				float dotProduct = direction.dotProduct(normalVector);
+
+				//if (dotProduct > 0)
+				//{
+				//	normalVector = -normalVector;
+				//	dotProduct = direction.dotProduct(normalVector);
+				//	densityFactor = 1 / densityFactor;
+				//}
+
+				double refractionFactor = 1 - densityFactor * densityFactor * (1 - dotProduct * dotProduct);
+
+				//if (refractionFactor < 0 || curand_uniform(&curandState) < shading.reflectance)
+				//{
+					baseDirection = direction - normalVector * 2 * dotProduct;
+				//}
+				//else
+				//{
+				//	baseDirection = direction * densityFactor - normalVector * densityFactor * dotProduct - normalVector * sqrt(refractionFactor);
+				//}
+				//baseDirection = baseDirection.unitVector();
 
 				Math::Vector roughnessVector = Math::Vector(
 					curand_uniform(&curandState) - 0.5,
 					curand_uniform(&curandState) - 0.5,
 					curand_uniform(&curandState) - 0.5
-				);
+				).unitVector();
 
-				if (roughnessVector.dotProduct(normalVector) < 0)
-					roughnessVector = -roughnessVector;
+				//if (roughnessVector.dotProduct(normalVector) < 0)
+				//	roughnessVector = -roughnessVector;
 
 				ray.direction = (
-					step.baseRay.direction.unitVector() * (1.f - step.shading.roughness) +
-					roughnessVector.unitVector() * step.shading.roughness
+					baseDirection * (1.f - shading.roughness) +
+					roughnessVector * shading.roughness
 					).unitVector();
+				ray.begin = intersectionPoint + ray.direction * rayEpsylon;
 
-				step.baseRay.begin = closestIntersection.position + step.baseRay.direction * rayEpsylon;
-				ray.begin = closestIntersection.position + ray.direction * rayEpsylon;
+				PathStep& step = steps[depth];
+				step.ray.direction = baseDirection;
+				step.ray.begin = intersectionPoint + step.ray.direction * rayEpsylon;
+				step.color = Shading::Filter(steps[depth - 1].color) * shading.color;
+				step.roughness = shading.roughness;
 			}
 
 			return MAX_DEPTH;

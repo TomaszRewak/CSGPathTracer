@@ -173,7 +173,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Communication\component-configurations.h" />
     <ClInclude Include="Communication\component-mapping.h" />
     <ClInclude Include="kernel.h" />
     <ClInclude Include="Math\geometry.h" />
@@ -187,21 +186,18 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="Math\Shapes\cylinder.h" />
     <ClInclude Include="Math\Shapes\plane.h" />
     <ClInclude Include="Math\Shapes\sphere.h" />
-    <ClInclude Include="PathTracer\operations.h" />
-    <ClInclude Include="PathTracer\Operations\operation-helpers.h" />
-    <ClInclude Include="PathTracer\Operations\shape-operation.h" />
-    <ClInclude Include="PathTracer\Operations\standard-operations.h" />
     <ClInclude Include="PathTracer\rendering.h" />
     <ClInclude Include="PathTracer\Rendering\rendering.h" />
     <ClInclude Include="PathTracer\Scene\camera.h" />
     <ClInclude Include="PathTracer\Scene\component-iterator.h" />
+    <ClInclude Include="PathTracer\Scene\component-photon.h" />
+    <ClInclude Include="PathTracer\Scene\scene.h" />
     <ClInclude Include="PathTracer\shading.h" />
     <ClInclude Include="PathTracer\tracing.h" />
     <ClInclude Include="PathTracer\Rendering\light-probing.h" />
     <ClInclude Include="PathTracer\scene.h" />
-    <ClInclude Include="PathTracer\Scene\component-configuration.h" />
     <ClInclude Include="PathTracer\Shading\color.h" />
-    <ClInclude Include="Communication\component-type.h" />
+    <ClInclude Include="PathTracer\Scene\component-type.h" />
     <ClInclude Include="PathTracer\Shading\shader.h" />
     <ClInclude Include="PathTracer\Tracing\path-step.h" />
     <ClInclude Include="PathTracer\Tracing\path-tracing.h" />

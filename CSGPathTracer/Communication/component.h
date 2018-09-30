@@ -1,14 +1,14 @@
 #pragma once
 
-#include "component-type.h"
 #include "../Math/geometry.h"
 #include "../PathTracer/Shading/shader.h"
+#include "../PathTracer/Scene/component-type.h"
 
 namespace Communication
 {
 	struct Component
 	{
-		ComponentType type;
+		PathTracer::ComponentType type;
 		Math::AffineTransformation globalTransformation;
 
 		PathTracer::Shading::Shader shader;
@@ -17,11 +17,11 @@ namespace Communication
 		size_t rightOperandOffset;
 
 		__host__ Component() :
-			type(ComponentType::None)
+			type(PathTracer::ComponentType::Shape)
 		{ }
 
 		__host__ Component(
-			ComponentType type,
+			PathTracer::ComponentType type,
 			Math::AffineTransformation globalTransformation,
 			size_t leftOperandOffset,
 			size_t rightOperandOffset,

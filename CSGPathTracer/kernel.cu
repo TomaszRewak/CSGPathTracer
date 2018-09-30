@@ -3,8 +3,8 @@
 #include "kernel.h"
 
 #include "PathTracer/rendering.h"
-#include "PathTracer/operations.h"
 #include "PathTracer/rendering.h"
+#include "PathTracer/scene.h"
 #include "Communication/component-mapping.h"
 
 namespace PathTracer
@@ -12,18 +12,13 @@ namespace PathTracer
 	__device__ void copyShapesToSharedMemory(
 		Communication::Component* zippedComponents, size_t componentsNumber,
 		Component*& components,
-		Component**& shapeComponents, size_t& shapeComponentsNumber,
-		Component**& lightComponents, size_t& lightComponentsNumber)
+		Component**& rootComponents, size_t& rootComponentsNumber)
 	{
 		if (!threadIdx.x && !threadIdx.y) {
-			shapeComponentsNumber = 0;
-			lightComponentsNumber = 0;
-
 			Communication::mapComponents(
 				zippedComponents, componentsNumber,
 				components,
-				shapeComponents, shapeComponentsNumber,
-				lightComponents, lightComponentsNumber
+				rootComponents, rootComponentsNumber
 			);
 		}
 
@@ -32,34 +27,32 @@ namespace PathTracer
 
 	__device__ void freeShapes(
 		Component* components,
-		Component**& shapeComponents,
-		Component**& lightComponents)
+		Component**& rootComponents)
 	{
 		__syncthreads();
 
 		if (!threadIdx.x && !threadIdx.y) {
 			free(components);
-			free(shapeComponents);
-			free(lightComponents);
+			free(rootComponents);
 		}
 	}
 
 	__global__ void kernel(
 		float4* image,
 		const size_t imageWidth, const size_t imageHeight,
-		Scene::Camera camera,
+		Camera camera,
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber, unsigned long long seed)
 	{
 		__shared__ Component* components;
-		__shared__ Component** shapeComponents; __shared__ size_t shapeComponentsNumber;
-		__shared__ Component** lightComponents; __shared__ size_t lightComponentsNumber;
+		__shared__ Component** rootComponents; __shared__ size_t rootComponentsNumber;
 
 		copyShapesToSharedMemory(
 			zippedComponents, zippedComponentsNumber,
 			components,
-			shapeComponents, shapeComponentsNumber,
-			lightComponents, lightComponentsNumber);
+			rootComponents, rootComponentsNumber);
+
+		PathTracer::Scene scene(rootComponents, rootComponentsNumber);
 
 		size_t x = blockIdx.x * blockDim.x + threadIdx.x;
 		size_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -73,11 +66,7 @@ namespace PathTracer
 
 			Math::Ray ray = camera.getRay(x, y, imageWidth, imageHeight, randState);
 
-			Shading::Color light = Rendering::shootRay<7, 1>(
-				ray,
-				shapeComponents, shapeComponentsNumber,
-				lightComponents, lightComponentsNumber,
-				randState);
+			Shading::Color light = Rendering::shootRay<5, 1>(ray, scene, randState);
 
 			image[index].x = light.r;
 			image[index].y = light.g;
@@ -85,7 +74,7 @@ namespace PathTracer
 			image[index].w = 1.f / frameNumber;
 		}
 
-		freeShapes(components, shapeComponents, lightComponents);
+		freeShapes(components, rootComponents);
 	}
 
 	std::default_random_engine generator;
@@ -93,11 +82,11 @@ namespace PathTracer
 	void renderRect(
 		float4* image,
 		const size_t imageWidth, const size_t imageHeight,
-		Scene::Camera camera,
+		Camera camera,
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber)
 	{
-		dim3 block(8, 8, 1);
+		dim3 block(16, 16, 1);
 		dim3 grid(imageWidth / block.x + 1, imageHeight / block.y + 1, 1);
 
 		std::uniform_int_distribution<unsigned long long> distribution(0, std::numeric_limits<unsigned long long>::max());

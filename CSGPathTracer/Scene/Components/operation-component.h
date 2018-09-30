@@ -5,7 +5,7 @@
 
 namespace Scene
 {
-	template<Communication::ComponentType OperationType>
+	template<PathTracer::ComponentType OperationType>
 	class OperationComponent : public Component
 	{
 	protected:
@@ -47,7 +47,7 @@ namespace Scene
 		}
 	};
 
-	class UnionComponent : public OperationComponent<Communication::ComponentType::Union> {
+	class UnionComponent : public OperationComponent<PathTracer::ComponentType::Union> {
 	public:
 		UnionComponent(
 			Math::AffineTransformation localTransformation,
@@ -65,7 +65,7 @@ namespace Scene
 		{ }
 	};
 
-	class DifferenceComponent : public OperationComponent<Communication::ComponentType::Difference> {
+	class DifferenceComponent : public OperationComponent<PathTracer::ComponentType::Difference> {
 	public:
 		DifferenceComponent(
 			Math::AffineTransformation localTransformation,
@@ -83,7 +83,7 @@ namespace Scene
 		{ }
 	};
 
-	class IntersectionComponent : public OperationComponent<Communication::ComponentType::Intersection> {
+	class IntersectionComponent : public OperationComponent<PathTracer::ComponentType::Intersection> {
 	public:
 		IntersectionComponent(
 			Math::AffineTransformation localTransformation,

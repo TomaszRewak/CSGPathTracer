@@ -4,7 +4,7 @@
 
 namespace Scene
 {
-	template<Communication::ComponentType ShapeType>
+	template<PathTracer::ComponentType ShapeType>
 	class ShapeComponent : public Component
 	{
 	protected:
@@ -34,7 +34,7 @@ namespace Scene
 		}
 	};
 
-	class SphereComponent : public ShapeComponent<Communication::ComponentType::Sphere> {
+	class SphereComponent : public ShapeComponent<PathTracer::ComponentType::Sphere> {
 	public:
 		SphereComponent(Math::AffineTransformation localTransformation, PathTracer::Shading::Shader shader) :
 			ShapeComponent(localTransformation, shader)
@@ -45,7 +45,7 @@ namespace Scene
 		{ }
 	};
 
-	class PlaneComponent : public ShapeComponent<Communication::ComponentType::Plane> {
+	class PlaneComponent : public ShapeComponent<PathTracer::ComponentType::Plane> {
 	public:
 		PlaneComponent(Math::AffineTransformation localTransformation, PathTracer::Shading::Shader shader) :
 			ShapeComponent(localTransformation, shader)
@@ -56,7 +56,7 @@ namespace Scene
 		{ }
 	};
 
-	class CylinderComponent : public ShapeComponent<Communication::ComponentType::Cylinder> {
+	class CylinderComponent : public ShapeComponent<PathTracer::ComponentType::Cylinder> {
 	public:
 		CylinderComponent(Math::AffineTransformation localTransformation, PathTracer::Shading::Shader shader) :
 			ShapeComponent(localTransformation, shader)

@@ -1,46 +1,50 @@
 #pragma once
 
 #include "../Tracing/path-tracing.h"
-#include "../Scene/component.h"
+#include "../Scene/scene.h"
 #include "light-probing.h"
 
 namespace PathTracer
 {
-	namespace Rendering 
+	namespace Rendering
 	{
 		template<size_t MaxViewDepth, size_t MaxLightDepth>
 		__device__ Shading::Color shootRay(
 			const Math::Ray& ray,
-			Component** shapeComponents, size_t shapeComponentsNumber,
-			Component** lightComponents, size_t lightComponentsNumber,
+			const Scene& scene,
 			curandState& curandState)
 		{
 			Shading::Color color;
 
 			Tracing::PathStep viewRaySteps[MaxViewDepth];
 			viewRaySteps[0] = Tracing::PathStep(
-				Shading::Shading(0, 0, 0, 0, 0.1, Shading::Color(1, 1, 1)),
-				ray
-			);
-			size_t viewDepth = 1 + Tracing::trace<MaxViewDepth - 1>(viewRaySteps + 1, ray, shapeComponents, shapeComponentsNumber, curandState);
+				Shading::Color(1, 1, 1),
+				ray,
+				0.1);
+			size_t viewDepth = Tracing::trace<MaxViewDepth>(
+				viewRaySteps,
+				scene,
+				curandState);
 
-			for (size_t lightComponentIndex = 0; lightComponentIndex < lightComponentsNumber; lightComponentIndex++)
+			for (size_t photonIndex = 0; photonIndex < scene.totalPhotons; photonIndex++)
 			{
-				Component* lightComponent = lightComponents[lightComponentIndex];
-				Math::Ray lightRay = lightComponent->generateRay(curandState);
+				ComponentPhoton photon = scene.generatePhoton(curandState);
+				Shading::Shading lightSourceShading = photon.component->shader.getShading(photon.ray.begin);
 
 				Tracing::PathStep lightRaySteps[MaxLightDepth];
-
 				lightRaySteps[0] = Tracing::PathStep(
-					lightComponent->shader.getShading(lightRay.begin),
-					lightRay
-				);
-				size_t lightDepth = 1 + Tracing::trace<MaxLightDepth - 1>(lightRaySteps + 1, lightRay, shapeComponents, shapeComponentsNumber, curandState);
+					lightSourceShading.color * photon.strength * lightSourceShading.emission,
+					ray,
+					lightSourceShading.emission);
+				size_t lightDepth = Tracing::trace<MaxLightDepth>(
+					lightRaySteps,
+					scene,
+					curandState);
 
-				color = color + probeLight<MaxViewDepth, MaxLightDepth>(
+				color = color + probeLight(
 					viewRaySteps, viewDepth,
 					lightRaySteps, lightDepth,
-					shapeComponents, shapeComponentsNumber
+					scene
 				);
 			}
 
