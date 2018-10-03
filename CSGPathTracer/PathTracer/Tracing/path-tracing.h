@@ -12,9 +12,7 @@ namespace PathTracer
 			const Scene& scene,
 			curandState& curandState)
 		{
-			const float rayEpsylon = 0.01;
-
-			steps[0].ray.begin = steps[0].ray.point(rayEpsylon);
+			steps[0].ray.begin = steps[0].ray.begin + steps[0].ray.direction.unitVector() * RAY_EPSYLON;
 			Math::Ray ray = steps[0].ray;
 
 			for (size_t depth = 1; depth < MAX_DEPTH; depth++)
@@ -39,24 +37,24 @@ namespace PathTracer
 				float densityFactor = 1 / shading.density;
 				float dotProduct = direction.dotProduct(normalVector);
 
-				//if (dotProduct > 0)
-				//{
-				//	normalVector = -normalVector;
-				//	dotProduct = direction.dotProduct(normalVector);
-				//	densityFactor = 1 / densityFactor;
-				//}
+				if (dotProduct > 0)
+				{
+					normalVector = -normalVector;
+					dotProduct = direction.dotProduct(normalVector);
+					densityFactor = 1 / densityFactor;
+				}
 
 				double refractionFactor = 1 - densityFactor * densityFactor * (1 - dotProduct * dotProduct);
 
-				//if (refractionFactor < 0 || curand_uniform(&curandState) < shading.reflectance)
-				//{
+				if (refractionFactor < 0 || curand_uniform(&curandState) < shading.reflectance)
+				{
 					baseDirection = direction - normalVector * 2 * dotProduct;
-				//}
-				//else
-				//{
-				//	baseDirection = direction * densityFactor - normalVector * densityFactor * dotProduct - normalVector * sqrt(refractionFactor);
-				//}
-				//baseDirection = baseDirection.unitVector();
+				}
+				else
+				{
+					baseDirection = direction * densityFactor - normalVector * densityFactor * dotProduct - normalVector * sqrt(refractionFactor);
+				}
+				baseDirection = baseDirection.unitVector();
 
 				Math::Vector roughnessVector = Math::Vector(
 					curand_uniform(&curandState) - 0.5,
@@ -64,18 +62,18 @@ namespace PathTracer
 					curand_uniform(&curandState) - 0.5
 				).unitVector();
 
-				//if (roughnessVector.dotProduct(normalVector) < 0)
-				//	roughnessVector = -roughnessVector;
+				if (roughnessVector.dotProduct(normalVector) < 0)
+					roughnessVector = -roughnessVector;
 
 				ray.direction = (
 					baseDirection * (1.f - shading.roughness) +
 					roughnessVector * shading.roughness
 					).unitVector();
-				ray.begin = intersectionPoint + ray.direction * rayEpsylon;
+				ray.begin = intersectionPoint + ray.direction * RAY_EPSYLON;
 
 				PathStep& step = steps[depth];
 				step.ray.direction = baseDirection;
-				step.ray.begin = intersectionPoint + step.ray.direction * rayEpsylon;
+				step.ray.begin = intersectionPoint + step.ray.direction * RAY_EPSYLON;
 				step.color = Shading::Filter(steps[depth - 1].color) * shading.color;
 				step.roughness = shading.roughness;
 			}

@@ -33,7 +33,7 @@ namespace PathTracer
 
 		__device__ Math::Ray getRay(size_t x, size_t y, size_t width, size_t height, curandState& randState)
 		{
-			float boxSize = fminf(width, height);
+			float boxSize = fminf((float)width, (float)height);
 
 			return getRay(
 				(x - width * 0.5 + curand_uniform(&randState) - 0.5) / boxSize,

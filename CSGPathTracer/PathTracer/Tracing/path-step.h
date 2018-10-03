@@ -10,7 +10,8 @@ namespace PathTracer
 			Math::Ray ray;
 			float roughness;
 
-			__device__ PathStep()
+			__device__ PathStep() :
+				roughness(0)
 			{ }
 
 			__device__ PathStep(Shading::Color color, const Math::Ray& ray, float roughness) :

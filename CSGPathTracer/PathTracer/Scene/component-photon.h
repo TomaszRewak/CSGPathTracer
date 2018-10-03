@@ -4,7 +4,7 @@
 
 namespace PathTracer
 {
-	class Component;
+	struct Component;
 
 	struct ComponentPhoton
 	{

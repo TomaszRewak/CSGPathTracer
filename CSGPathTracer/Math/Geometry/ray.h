@@ -23,5 +23,10 @@ namespace Math
 		{
 			return begin + direction * length;
 		}
+
+		__host__ __device__ Math::Ray unitRay() const
+		{
+			return Ray(begin, direction.unitVector());
+		}
 	};
 }

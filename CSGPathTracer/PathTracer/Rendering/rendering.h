@@ -14,8 +14,6 @@ namespace PathTracer
 			const Scene& scene,
 			curandState& curandState)
 		{
-			Shading::Color color;
-
 			Tracing::PathStep viewRaySteps[MaxViewDepth];
 			viewRaySteps[0] = Tracing::PathStep(
 				Shading::Color(1, 1, 1),
@@ -26,29 +24,24 @@ namespace PathTracer
 				scene,
 				curandState);
 
-			for (size_t photonIndex = 0; photonIndex < scene.totalPhotons; photonIndex++)
-			{
-				ComponentPhoton photon = scene.generatePhoton(curandState);
-				Shading::Shading lightSourceShading = photon.component->shader.getShading(photon.ray.begin);
+			ComponentPhoton photon = scene.generatePhoton(curandState);
+			Shading::Shading lightSourceShading = photon.component->shader.getShading(photon.ray.begin);
 
-				Tracing::PathStep lightRaySteps[MaxLightDepth];
-				lightRaySteps[0] = Tracing::PathStep(
-					lightSourceShading.color * photon.strength * lightSourceShading.emission,
-					ray,
-					lightSourceShading.emission);
-				size_t lightDepth = Tracing::trace<MaxLightDepth>(
-					lightRaySteps,
-					scene,
-					curandState);
+			Tracing::PathStep lightRaySteps[MaxLightDepth];
+			lightRaySteps[0] = Tracing::PathStep(
+				lightSourceShading.color * photon.strength * lightSourceShading.emission,
+				ray,
+				lightSourceShading.emission);
+			size_t lightDepth = Tracing::trace<MaxLightDepth>(
+				lightRaySteps,
+				scene,
+				curandState);
 
-				color = color + probeLight(
-					viewRaySteps, viewDepth,
-					lightRaySteps, lightDepth,
-					scene
-				);
-			}
-
-			return color;
+			return probeLight(
+				viewRaySteps, viewDepth,
+				lightRaySteps, lightDepth,
+				scene
+			);
 		}
 	}
 }

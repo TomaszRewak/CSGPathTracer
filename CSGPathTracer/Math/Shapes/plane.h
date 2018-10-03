@@ -18,7 +18,7 @@ namespace Math
 				return INFINITY;
 		}
 
-		__device__ static bool validateIntersection(const Point& point)
+		__device__ static bool pointInside(const Point& point)
 		{
 			return point.y <= 0.0f;
 		}
@@ -33,7 +33,6 @@ namespace Math
 			float x = 1 - 2 * curand_uniform(&randomNumberGenerator);
 			float y = 0;
 			float z = 1 - 2 * curand_uniform(&randomNumberGenerator);
-
 
 			return Ray(
 				Point(x, y, z),

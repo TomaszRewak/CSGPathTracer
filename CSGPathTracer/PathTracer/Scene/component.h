@@ -7,6 +7,8 @@
 
 namespace PathTracer
 {
+#define RAY_EPSYLON 0.001f
+
 	struct Component
 	{
 		ComponentType type;
@@ -45,7 +47,7 @@ namespace PathTracer
 
 				Math::Point point = ray.point(intersectionCandidate.distance);
 
-				if (pointInside(point, intersectionCandidate.component) != InsideKind::Outside)
+				if (pointInside(point, intersectionCandidate.component) == InsideKind::Surface)
 					intersection = intersectionCandidate;
 
 				minDistance = intersectionCandidate.distance;
@@ -59,8 +61,10 @@ namespace PathTracer
 
 			generatePhotonCandidate(photon, photonsLeft, rand);
 
-			if (photon.component != NULL && pointInside(photon.ray.begin, photon.component) == InsideKind::Outside)
+			if (photon.component != NULL && pointInside(photon.ray.begin, photon.component) != InsideKind::Surface)
 				photon.strength = 0;
+
+			photon.ray.direction = photon.ray.direction + photon.ray.direction.unitVector() * RAY_EPSYLON;
 		}
 
 		__device__ Math::Vector normalVector(const Math::Point &point) const
@@ -177,16 +181,22 @@ namespace PathTracer
 					return InsideKind::Surface;
 
 				Math::Point localPoint = globalTransformation.inverse(point);
+				bool inside = false;
 
 				switch (type)
 				{
 				case ComponentType::Sphere:
-					return InsideKind(Math::Sphere::validateIntersection(localPoint));
+					inside = Math::Sphere::pointInside(localPoint);
+					break;
 				case ComponentType::Cylinder:
-					return InsideKind(Math::Cylinder::validateIntersection(localPoint));
+					inside = Math::Cylinder::pointInside(localPoint);
+					break;
 				case ComponentType::Plane:
-					return InsideKind(Math::Plane::validateIntersection(localPoint));
+					inside = Math::Plane::pointInside(localPoint);
+					break;
 				}
+
+				return inside ? InsideKind::Inside : InsideKind::Outside;
 			}
 			else
 			{
@@ -213,15 +223,22 @@ namespace PathTracer
 						return InsideKind::Outside;
 				}
 
+				bool inside = false;
+
 				switch (type)
 				{
 				case ComponentType::Union:
-					return InsideKind(bool(left) || bool(right));
+					inside = left == InsideKind::Inside || right == InsideKind::Inside;
+					break;
 				case ComponentType::Intersection:
-					return InsideKind(bool(left) && bool(right));
+					inside = left == InsideKind::Inside && right == InsideKind::Inside;
+					break;
 				case ComponentType::Difference:
-					return InsideKind(bool(left) && !bool(right));
+					inside = left == InsideKind::Inside && right == InsideKind::Outside;
+					break;
 				}
+
+				return inside ? InsideKind::Inside : InsideKind::Outside;
 			}
 		}
 	};

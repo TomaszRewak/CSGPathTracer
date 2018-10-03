@@ -21,6 +21,9 @@ namespace Math
 			{
 				float deltaSqrt = sqrtf(delta);
 
+				if (a < 0)
+					deltaSqrt = -deltaSqrt;
+
 				float d1 = (-b - deltaSqrt) / (2 * a);
 				float d2 = (-b + deltaSqrt) / (2 * a);
 
@@ -33,7 +36,7 @@ namespace Math
 			return INFINITY;
 		}
 
-		__device__ static bool validateIntersection(const Point& point)
+		__device__ static bool pointInside(const Point& point)
 		{
 			return point.x * point.x + point.y * point.y + point.z * point.z <= 1.0f;
 		}
@@ -45,8 +48,8 @@ namespace Math
 
 		__device__ static Ray generateRandomSurfaceRay(curandState& curandState)
 		{
-			float t = 2 * 3.1415 * curand_uniform(&curandState);
-			float p = acosf(1 - 2 * curand_uniform(&curandState));
+			float t = 2.f * 3.1415f * curand_uniform(&curandState);
+			float p = acosf(1.f - 2.f * curand_uniform(&curandState));
 
 			float x = sinf(p) * cosf(t);
 			float y = sinf(p) * sinf(t);

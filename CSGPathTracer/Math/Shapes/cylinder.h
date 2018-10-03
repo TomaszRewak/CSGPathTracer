@@ -36,7 +36,7 @@ namespace Math
 			return INFINITY;
 		}
 
-		__device__ static bool validateIntersection(const Point& point)
+		__device__ static bool pointInside(const Point& point)
 		{
 			return point.x * point.x + point.z * point.z <= 1.0f;
 		}

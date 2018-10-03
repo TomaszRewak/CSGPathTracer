@@ -35,7 +35,7 @@ namespace PathTracer
 		{
 			Shading::Color illumination;
 
-			for (size_t viewRayStepIndex = 1; viewRayStepIndex < viewRayStepsNumber; viewRayStepIndex++)
+			for (size_t viewRayStepIndex = 0; viewRayStepIndex < viewRayStepsNumber; viewRayStepIndex++)
 			{
 				for (size_t lightRayStepIndex = 0; lightRayStepIndex < lightRayStepsNumber; lightRayStepIndex++)
 				{

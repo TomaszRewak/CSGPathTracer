@@ -24,7 +24,7 @@ namespace PathTracer
 			__host__ __device__ Shading() :
 				emission(0),
 				density(0),
-				reflectance(0), 
+				reflectance(1), 
 				roughness(0)
 			{}
 
@@ -54,7 +54,7 @@ namespace PathTracer
 
 			__host__ __device__ Shader() :
 				shaderType(ShaderType::None),
-				shading(0, 0, 0, 0, Color()),
+				shading(),
 				photons(0)
 			{ }
 
@@ -69,11 +69,6 @@ namespace PathTracer
 			__device__ Shading getShading(const Math::Point& point) const
 			{
 				return shading;
-			}
-
-			__device__ bool isLightSource() const
-			{
-				return shading.emission > 0;
 			}
 		};
 	}
