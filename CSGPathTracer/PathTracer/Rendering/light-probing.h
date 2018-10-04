@@ -29,32 +29,30 @@ namespace PathTracer
 		}
 
 		__device__ Shading::Color probeLight(
-			const Tracing::PathStep* viewRaySteps, size_t viewRayStepsNumber,
+			const Tracing::PathStep& viewRayStep,
 			const Tracing::PathStep* lightRaySteps, size_t lightRayStepsNumber,
 			const Scene &scene)
 		{
+			Shading::Color filter(lightRaySteps[0].shading.emission);
 			Shading::Color illumination;
 
-			for (size_t viewRayStepIndex = 0; viewRayStepIndex < viewRayStepsNumber; viewRayStepIndex++)
+			for (size_t lightRayStepIndex = 0; lightRayStepIndex < lightRayStepsNumber; lightRayStepIndex++)
 			{
-				for (size_t lightRayStepIndex = 0; lightRayStepIndex < lightRayStepsNumber; lightRayStepIndex++)
+				const Tracing::PathStep& lightRayStep = lightRaySteps[lightRayStepIndex];
+
+				filter = filter * lightRayStep.shading.color;
+
+				bool visible = !scene.hitsObstacle(
+					Math::Ray(viewRayStep.ray.begin, lightRayStep.ray.begin)
+				);
+
+				if (visible)
 				{
-					const Tracing::PathStep& viewRayStep = viewRaySteps[viewRayStepIndex];
-					const Tracing::PathStep& lightRayStep = lightRaySteps[lightRayStepIndex];
-
-					bool visible = scene.hitsObstacle(
-						Math::Ray(viewRayStep.ray.begin, lightRayStep.ray.begin)
-					);
-
-					if (visible)
-					{
-						float visibilityFactor =
-							lightRayVisibilityFactor(viewRayStep.ray.direction, lightRayStep.ray.direction, lightRayStep.roughness) *
-							lightRayVisibilityFactor(lightRayStep.ray.direction, viewRayStep.ray.direction, viewRayStep.roughness);
-
-						illumination = illumination + Shading::Filter(viewRayStep.color) * lightRayStep.color * visibilityFactor;
-					}
-
+					float visibilityFactor = 0.5;
+						lightRayVisibilityFactor(viewRayStep.ray.direction, lightRayStep.ray.direction, lightRayStep.shading.roughness) *
+						lightRayVisibilityFactor(lightRayStep.ray.direction, viewRayStep.ray.direction, viewRayStep.shading.roughness);
+					
+					illumination = illumination + filter * viewRayStep.shading.color * visibilityFactor;
 				}
 			}
 

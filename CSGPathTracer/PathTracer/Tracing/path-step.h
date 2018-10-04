@@ -6,18 +6,23 @@ namespace PathTracer
 	{
 		struct PathStep
 		{
-			Shading::Color color;
 			Math::Ray ray;
-			float roughness;
+			Math::Vector normalVector;
+			Shading::Shading shading;
 
-			__device__ PathStep() :
-				roughness(0)
+			__device__ PathStep()
 			{ }
 
-			__device__ PathStep(Shading::Color color, const Math::Ray& ray, float roughness) :
-				color(color),
+			__device__ PathStep(const Math::Ray& ray, const Shading::Shading& shading) :
 				ray(ray),
-				roughness(roughness)
+				normalVector(ray.direction),
+				shading(shading)
+			{ }
+
+			__device__ PathStep(const Math::Ray& ray, const Math::Vector& normalVector, const Shading::Shading& shading) :
+				ray(ray),
+				normalVector(normalVector),
+				shading(shading)
 			{ }
 		};
 	}

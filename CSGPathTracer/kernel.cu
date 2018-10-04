@@ -66,7 +66,7 @@ namespace PathTracer
 
 			Math::Ray ray = camera.getRay(x, y, imageWidth, imageHeight, randState);
 
-			Shading::Color light = Rendering::shootRay<4, 2>(ray, scene, randState);
+			Shading::Color light = Rendering::shootRay<4, 1>(ray, scene, randState);
 
 			image[index].x = light.r;
 			image[index].y = light.g;

@@ -20,6 +20,9 @@ namespace PathTracer
 				b(b), g(g), r(r), a(1.f) {}
 			__host__ __device__ Color(float r, float g, float b, float a) :
 				b(b), g(g), r(r), a(a) {}
+			__host__ __device__ Color(float g) :
+				b(g), g(g), r(g), a(1.f)
+			{ }
 
 			__device__ Color operator+(const Color& second) const
 			{
@@ -32,43 +35,12 @@ namespace PathTracer
 
 			__device__ Color operator*(float by) const
 			{
-				return Color(r * by, g * by, b * by);
-			}
-		};
-
-		struct Filter
-		{
-			float r;
-			float g;
-			float b;
-
-			__device__ Filter() : Filter(1, 1, 1)
-			{ }
-			__device__ explicit Filter(float r, float g, float b) :
-				r(fminf(1., r)), g(fminf(1., g)), b(fminf(1., b))
-			{ }
-			__device__ explicit Filter(const Color& color) :
-				Filter(color.r, color.g, color.b)
-			{ }
-
-			__device__ Filter operator*(float by) const
-			{
-				return Filter(r * by, g * by, b * by);
-			}
-
-			__device__ Filter operator+(const Filter& second) const
-			{
-				return Filter(r + second.r, g + second.g, b + second.b);
-			}
-
-			__device__ Filter operator*(const Filter& second) const
-			{
-				return Filter(r * second.r, g * second.g, b * second.b);
+				return Color(r * by, g * by, b * by, a);
 			}
 
 			__device__ Color operator*(const Color& second) const
 			{
-				return Color(r * second.r, g * second.g, b * second.b);
+				return Color(r * second.r, g * second.g, b * second.b, a * second.a);
 			}
 		};
 	}

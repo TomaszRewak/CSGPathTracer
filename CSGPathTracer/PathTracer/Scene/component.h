@@ -7,7 +7,7 @@
 
 namespace PathTracer
 {
-#define RAY_EPSYLON 0.001f
+#define RAY_EPSYLON 0.01f
 
 	struct Component
 	{
@@ -64,7 +64,7 @@ namespace PathTracer
 			if (photon.component != NULL && pointInside(photon.ray.begin, photon.component) != InsideKind::Surface)
 				photon.strength = 0;
 
-			photon.ray.direction = photon.ray.direction + photon.ray.direction.unitVector() * RAY_EPSYLON;
+			photon.ray.begin = photon.ray.begin + photon.ray.direction.unitVector() * RAY_EPSYLON;
 		}
 
 		__device__ Math::Vector normalVector(const Math::Point &point) const
@@ -151,8 +151,9 @@ namespace PathTracer
 				if (photonsLeft > 0 && curand_uniform(&rand) < totalPhotons / photonsLeft)
 				{
 					photon.ray = globalTransformation.transform(newRayCandidate);
+					photon.ray.direction = photon.ray.direction * this->normalDirection;
 					photon.component = this;
-					photon.strength = 1.f;
+					photon.strength = totalPhotons;
 					photonsLeft = 0;
 				}
 				else

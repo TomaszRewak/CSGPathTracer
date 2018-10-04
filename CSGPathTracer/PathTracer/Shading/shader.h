@@ -24,20 +24,28 @@ namespace PathTracer
 			__host__ __device__ Shading() :
 				emission(0),
 				density(0),
-				reflectance(1), 
+				reflectance(1),
 				roughness(0)
 			{}
 
+			__host__ __device__ Shading(const Color &color, float roughness) :
+				emission(0),
+				density(0),
+				reflectance(1),
+				roughness(roughness),
+				color(color)
+			{}
+
 			__host__ __device__ Shading(
-				float emission, 
+				float emission,
 				float density,
-				float reflectance, 
-				float roughness, 
+				float reflectance,
+				float roughness,
 				const Color &color
 			) :
-				emission(emission), 
+				emission(emission),
 				density(density),
-				reflectance(reflectance), 
+				reflectance(reflectance),
 				roughness(roughness),
 				color(color)
 			{}
