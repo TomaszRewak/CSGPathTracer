@@ -7,7 +7,7 @@
 
 namespace PathTracer
 {
-#define RAY_EPSYLON 0.01f
+#define RAY_EPSYLON 0.1f
 
 	struct Component
 	{

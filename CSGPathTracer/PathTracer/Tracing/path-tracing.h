@@ -65,6 +65,7 @@ namespace PathTracer
 			}
 
 			return PathStep(
+				closestIntersection.component,
 				Math::Ray(
 					intersectionPoint + direction.unitVector() * RAY_EPSYLON,
 					direction

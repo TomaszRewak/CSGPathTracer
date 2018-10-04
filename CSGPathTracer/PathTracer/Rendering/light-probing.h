@@ -42,11 +42,11 @@ namespace PathTracer
 
 				filter = filter * lightRayStep.shading.color;
 
-				bool visible = !scene.hitsObstacle(
+				ComponentIntersection intersection = scene.intersect(
 					Math::Ray(viewRayStep.ray.begin, lightRayStep.ray.begin)
 				);
 
-				if (visible)
+				if (intersection.distance > 1 || intersection.component == lightRayStep.component)
 				{
 					float visibilityFactor = 0.5;
 						lightRayVisibilityFactor(viewRayStep.ray.direction, lightRayStep.ray.direction, lightRayStep.shading.roughness) *
