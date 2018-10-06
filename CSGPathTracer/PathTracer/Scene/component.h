@@ -128,28 +128,28 @@ namespace PathTracer
 
 		__device__ void generatePhotonCandidate(ComponentPhoton& photon, float& photonsLeft, curandState& rand) const
 		{
-			if (!totalPhotons)
+			if (totalPhotons <= 0 || photonsLeft <= 0)
 				return;
 
 			if (int(type) & int(ComponentType::Shape))
 			{
-				Math::Ray newRayCandidate;
-
-				switch (type)
-				{
-				case ComponentType::Sphere:
-					newRayCandidate = Math::Sphere::generateRandomSurfaceRay(rand);
-					break;
-				case ComponentType::Cylinder:
-					newRayCandidate = Math::Cylinder::generateRandomSurfaceRay(rand);
-					break;
-				case ComponentType::Plane:
-					newRayCandidate = Math::Plane::generateRandomSurfaceRay(rand);
-					break;
-				}
-
 				if (photonsLeft > 0 && curand_uniform(&rand) < totalPhotons / photonsLeft)
 				{
+					Math::Ray newRayCandidate;
+
+					switch (type)
+					{
+					case ComponentType::Sphere:
+						newRayCandidate = Math::Sphere::generateRandomSurfaceRay(rand);
+						break;
+					case ComponentType::Cylinder:
+						newRayCandidate = Math::Cylinder::generateRandomSurfaceRay(rand);
+						break;
+					case ComponentType::Plane:
+						newRayCandidate = Math::Plane::generateRandomSurfaceRay(rand);
+						break;
+					}
+
 					photon.ray = globalTransformation.transform(newRayCandidate);
 					photon.ray.direction = photon.ray.direction * this->normalDirection;
 					photon.component = this;
@@ -176,28 +176,23 @@ namespace PathTracer
 
 		__device__ InsideKind pointInside(const Math::Point& point, const Component* surfaceComponent) const
 		{
+			if (surfaceComponent == this)
+				return InsideKind::Surface;
+
 			if (int(type) & int(ComponentType::Shape))
 			{
-				if (surfaceComponent == this)
-					return InsideKind::Surface;
-
 				Math::Point localPoint = globalTransformation.inverse(point);
 				bool inside = false;
 
 				switch (type)
 				{
 				case ComponentType::Sphere:
-					inside = Math::Sphere::pointInside(localPoint);
-					break;
+					return InsideKind(Math::Sphere::pointInside(localPoint));
 				case ComponentType::Cylinder:
-					inside = Math::Cylinder::pointInside(localPoint);
-					break;
+					return InsideKind(Math::Cylinder::pointInside(localPoint));
 				case ComponentType::Plane:
-					inside = Math::Plane::pointInside(localPoint);
-					break;
+					return InsideKind(Math::Plane::pointInside(localPoint));
 				}
-
-				return inside ? InsideKind::Inside : InsideKind::Outside;
 			}
 			else
 			{
@@ -224,22 +219,15 @@ namespace PathTracer
 						return InsideKind::Outside;
 				}
 
-				bool inside = false;
-
 				switch (type)
 				{
 				case ComponentType::Union:
-					inside = left == InsideKind::Inside || right == InsideKind::Inside;
-					break;
+					return InsideKind(left == InsideKind::Inside || right == InsideKind::Inside);
 				case ComponentType::Intersection:
-					inside = left == InsideKind::Inside && right == InsideKind::Inside;
-					break;
+					return InsideKind(left == InsideKind::Inside && right == InsideKind::Inside);
 				case ComponentType::Difference:
-					inside = left == InsideKind::Inside && right == InsideKind::Outside;
-					break;
+					return InsideKind(left == InsideKind::Inside && right == InsideKind::Outside);
 				}
-
-				return inside ? InsideKind::Inside : InsideKind::Outside;
 			}
 		}
 	};

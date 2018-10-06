@@ -57,17 +57,17 @@ namespace PathTracer
 		size_t x = blockIdx.x * blockDim.x + threadIdx.x;
 		size_t y = blockIdx.y * blockDim.y + threadIdx.y;
 
+		size_t index = y * imageWidth + x;
+
+		curandState randState;
+		curand_init(seed + index * 10, 0, 0, &randState); // worth remembering: curand_init(seed + index, 0, 0, &randState);
+
+		Math::Ray ray = camera.getRay(x, y, imageWidth, imageHeight, randState);
+
+		Shading::Color light = Rendering::shootRay<4, 2>(ray, scene, randState);
+
 		if (x < imageWidth && y < imageHeight)
 		{
-			size_t index = y * imageWidth + x;
-
-			curandState randState;
-			curand_init(seed + index, 0, 0, &randState); // worth remembering: curand_init(seed + index, 0, 0, &randState);
-
-			Math::Ray ray = camera.getRay(x, y, imageWidth, imageHeight, randState);
-
-			Shading::Color light = Rendering::shootRay<5, 2>(ray, scene, randState);
-
 			image[index].x = light.r;
 			image[index].y = light.g;
 			image[index].z = light.b;

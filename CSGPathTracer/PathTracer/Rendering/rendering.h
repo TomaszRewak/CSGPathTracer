@@ -25,23 +25,29 @@ namespace PathTracer
 					scene,
 					curandState);
 
-			Tracing::PathStep viewStep = Tracing::PathStep(NULL, ray, Shading::Shading(Shading::Color(1.f, 1.f, 1.f), 0.f));
+			Tracing::PathStep viewStep = Tracing::PathStep(NULL, ray, Shading::Shading(Shading::Color(1.f, 1.f, 1.f), 0.001f));
 
 			Shading::Color color;
 			Shading::Color filter(1.f);
 
 			for (size_t i = 0; i < MaxViewDepth; i++)
 			{
+				__syncthreads();
+
 				viewStep = Tracing::trace(
 					viewStep,
 					scene,
 					curandState);
+
+				__syncthreads();
 
 				Shading::Color stepColor = probeLight(
 					viewStep,
 					lightRaySteps, MaxLightDepth,
 					scene
 				);
+
+				__syncthreads();
 
 				color = color + filter * stepColor + filter * (viewStep.shading.color * viewStep.shading.emission);
 				filter = filter * viewStep.shading.color;

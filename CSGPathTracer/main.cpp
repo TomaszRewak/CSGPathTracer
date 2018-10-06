@@ -95,7 +95,7 @@ void createDataBuffer()
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), wallShaderC));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(1.57), wallShaderC));
 
-		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(0, 175, -200), emmisiveShaderA));
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(40, 40, 40).translate(0, 100, -200), emmisiveShaderA));
 
 		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(40, 40, 40).translate(-150, 150, -200), transparentShader));
 
