@@ -38,13 +38,16 @@ void createDataBuffer()
 	if (zippedComponentsDevice == NULL)
 	{
 		auto wallShaderA = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1, 0.15, PathTracer::Shading::Color(0.5, 0.9, 0.9)));
-		auto wallShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0, PathTracer::Shading::Color(1., 1., 1.)));
+		auto wallShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0, PathTracer::Shading::Color(0.9, 0.9, 0.6)));
 		auto wallShaderC = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 1., PathTracer::Shading::Color(0.9, 0.9, 0.9)));
+		
 		auto redShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0.1, PathTracer::Shading::Color(0.9, 0.6, 0.8)));
 		auto greenShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0.05, PathTracer::Shading::Color(0.6, 0.9, 0.8)));
 		auto blueShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0, PathTracer::Shading::Color(0.6, 0.6, 0.9)));
+		
 		auto emmisiveShaderA = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.3, 1., 1., PathTracer::Shading::Color(1.f, 1.f, 1.f)), 1.f);
 		auto emmisiveShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.3, 1., 1., PathTracer::Shading::Color(0.8f, 0.7f, 1.0f)), 1.f);
+		
 		auto transparentShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 1.8, 0, 0, PathTracer::Shading::Color(0.9, 0.9, 0.95)));
 
 		scene.components.clear();
@@ -94,7 +97,7 @@ void createDataBuffer()
 
 		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(50, 50, 50).translate(0, 175, -200), emmisiveShaderA));
 
-		//scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(60, 60, 60).translate(-50, -30, -250), transparentShader));
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(40, 40, 40).translate(-150, 150, -200), transparentShader));
 
 		size_t newShapesNumber = scene.zipSize();
 		size_t size = newShapesNumber * sizeof(Communication::Component);
