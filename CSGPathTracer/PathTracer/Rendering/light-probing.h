@@ -52,7 +52,7 @@ namespace PathTracer
 						lightRayVisibilityFactor(viewRayStep.ray.direction, lightRayStep.ray.direction, lightRayStep.shading.roughness) *
 						lightRayVisibilityFactor(lightRayStep.ray.direction, viewRayStep.ray.direction, viewRayStep.shading.roughness);
 					
-					illumination = illumination + filter * viewRayStep.shading.color * visibilityFactor * 0.3; // Yup - 0.3 has to be removed
+					illumination = illumination + filter * viewRayStep.shading.color * visibilityFactor * (1 / scene.totalPhotons);
 				}
 			}
 

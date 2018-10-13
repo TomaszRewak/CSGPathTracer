@@ -40,6 +40,7 @@ namespace PathTracer
 	__global__ void kernel(
 		float4* image,
 		const size_t imageWidth, const size_t imageHeight,
+		size_t scopeX, size_t scopeY, size_t scopes,
 		Camera camera,
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber, unsigned long long seed)
@@ -54,8 +55,8 @@ namespace PathTracer
 
 		PathTracer::Scene scene(rootComponents, rootComponentsNumber);
 
-		size_t x = blockIdx.x * blockDim.x + threadIdx.x;
-		size_t y = blockIdx.y * blockDim.y + threadIdx.y;
+		size_t x = (blockIdx.x * blockDim.x + threadIdx.x) * scopes + scopeX;
+		size_t y = (blockIdx.y * blockDim.y + threadIdx.y) * scopes + scopeY;
 
 		size_t index = y * imageWidth + x;
 
@@ -86,12 +87,28 @@ namespace PathTracer
 		Communication::Component* zippedComponents, size_t zippedComponentsNumber,
 		size_t frameNumber)
 	{
+		const size_t scopes = 4;
+
 		dim3 block(16, 16, 1);
-		dim3 grid(imageWidth / block.x + 1, imageHeight / block.y + 1, 1);
+		dim3 grid(imageWidth / block.x / scopes + 1, imageHeight / block.y / scopes + 1, 1);
 
 		std::uniform_int_distribution<unsigned long long> distribution(0, std::numeric_limits<unsigned long long>::max());
 		unsigned long long seed = distribution(generator);
 
-		kernel << <grid, block >> > (image, imageWidth, imageHeight, camera, zippedComponents, zippedComponentsNumber, frameNumber, seed);
+		for (size_t scopeX = 0; scopeX < scopes; scopeX++)
+		{
+			for (size_t scopeY = 0; scopeY < scopes; scopeY++)
+			{
+				kernel << <grid, block >> > (
+					image,
+					imageWidth, imageHeight,
+					scopeX, scopeY, scopes,
+					camera,
+					zippedComponents, zippedComponentsNumber,
+					frameNumber, seed);
+
+				cudaDeviceSynchronize();
+			}
+		}
 	}
 }

@@ -12,6 +12,7 @@ namespace Scene
 	public:
 		std::vector<std::shared_ptr<Component>> components;
 		Math::AffineTransformation globalTransformation;
+		PathTracer::Camera camera;
 
 		size_t zip(Communication::Component* dst) const
 		{

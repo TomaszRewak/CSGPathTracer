@@ -16,17 +16,12 @@
 #include "PathTracer/shading.h"
 #include "PathTracer/scene.h"
 
-int width = 400;
-int height = 300;
+int width = 800;
+int height = 600;
 
 GLuint texture;
 GLuint pixelBuffer;
 cudaGraphicsResource *cudaBuffer;
-
-PathTracer::Camera camera = PathTracer::Camera(
-	Math::AffineTransformation().translate(0, 0, -600),
-	5.f
-);
 
 size_t zippedComponentsNumber = 0;
 Scene::Scene scene;
@@ -39,16 +34,21 @@ void createDataBuffer()
 	{
 		auto wallShaderA = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1, 0.15, PathTracer::Shading::Color(0.5, 0.9, 0.9)));
 		auto wallShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0, PathTracer::Shading::Color(0.9, 0.9, 0.6)));
-		auto wallShaderC = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 1., PathTracer::Shading::Color(0.9, 0.9, 0.9)));
-		
+		auto wallShaderC = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0.6, PathTracer::Shading::Color(0.9, 0.9, 0.9)));
+
 		auto redShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0.1, PathTracer::Shading::Color(0.9, 0.6, 0.8)));
 		auto greenShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0.05, PathTracer::Shading::Color(0.6, 0.9, 0.8)));
 		auto blueShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 0.3, 1., 0, PathTracer::Shading::Color(0.6, 0.6, 0.9)));
-		
+
 		auto emmisiveShaderA = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.3, 1., 1., PathTracer::Shading::Color(1.f, 1.f, 1.f)), 1.f);
 		auto emmisiveShaderB = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0.85, 0.3, 1., 1., PathTracer::Shading::Color(0.8f, 0.7f, 1.0f)), 1.f);
-		
+
 		auto transparentShader = PathTracer::Shading::Shader(PathTracer::Shading::ShaderType::Uniform, PathTracer::Shading::Shading(0, 1.8, 0, 0, PathTracer::Shading::Color(0.9, 0.9, 0.95)));
+
+		scene.camera = PathTracer::Camera(
+			Math::AffineTransformation().translate(0, 0, -600),
+			5.f
+		);
 
 		scene.components.clear();
 
@@ -92,12 +92,39 @@ void createDataBuffer()
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(-1.57), wallShaderC));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateX(3.14), wallShaderC));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(1.57), wallShaderA));
-		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -200, 0).rotateZ(-1.57), wallShaderC));
+		scene.components.push_back(std::make_shared<Scene::DifferenceComponent>(
+			Math::AffineTransformation().scale(100, 100, 100).translate(100, -200, -100).rotateZ(-1.57),
+			std::make_shared<Scene::PlaneComponent>(wallShaderC),
+			std::make_shared<Scene::SphereComponent>(blueShader)
+			));
 		scene.components.push_back(std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().translate(0, -800, 0).rotateX(1.57), wallShaderC));
 
-		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(40, 40, 40).translate(0, 100, -200), emmisiveShaderA));
 
-		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(40, 40, 40).translate(-150, 150, -200), transparentShader));
+		scene.components.push_back(std::make_shared<Scene::DifferenceComponent>(
+			Math::AffineTransformation().scale(40, 40, 40).translate(0, 100, -200),
+			std::make_shared<Scene::SphereComponent>(emmisiveShaderA),
+			std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(0.9, 0.9, 0.9).translate(0.2, 0.5, -0.6), wallShaderC)
+			));
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(0.5, 0.5, 0.5).translate(0.2, 0.5, -0.6).scale(40, 40, 40).translate(0, 100, -200), redShader));
+
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(40, 40, 40).translate(-150, 130, -200), transparentShader));
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(40, 40, 40).translate(-150, 0, -200), transparentShader));
+
+		scene.components.push_back(std::make_shared<Scene::CylinderComponent>(Math::AffineTransformation().scale(10, 10, 10).translate(-150, 0, -120), redShader));
+
+		scene.components.push_back(std::make_shared<Scene::IntersectionComponent>(
+			Math::AffineTransformation().scale(20, 20, 20).rotateZ(-0.7853).translate(100, 0, -250),
+			std::make_shared<Scene::CylinderComponent>(redShader),
+			std::make_shared<Scene::PlaneComponent>(Math::AffineTransformation().rotateZ(3.14), redShader)
+			));
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(20, 20, 20).rotateZ(-0.7853).translate(100, 0, -250), redShader));
+
+		scene.components.push_back(std::make_shared<Scene::IntersectionComponent>(
+			Math::AffineTransformation().scale(20, 20, 20).rotateZ(-0.7853).translate(50, -50, -250),
+			std::make_shared<Scene::CylinderComponent>(redShader),
+			std::make_shared<Scene::PlaneComponent>(redShader)
+			));
+		scene.components.push_back(std::make_shared<Scene::SphereComponent>(Math::AffineTransformation().scale(20, 20, 20).rotateZ(-0.7853).translate(50, -50, -250), redShader));
 
 		size_t newShapesNumber = scene.zipSize();
 		size_t size = newShapesNumber * sizeof(Communication::Component);
@@ -135,9 +162,9 @@ void renderImage()
 	PathTracer::renderRect(
 		imageArray,
 		width, height,
-		camera,
+		scene.camera,
 		zippedComponentsDevice, zippedComponentsNumber,
-		frameNumber++);
+		++frameNumber);
 
 	cudaGraphicsUnmapResources(1, &cudaBuffer);
 }
